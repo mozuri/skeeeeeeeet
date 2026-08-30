@@ -7146,10 +7146,12 @@ do -- Aimbot (First Tab) - Redesigned per image
     AimbotEnable:Keybind({Default = Enum.KeyCode.LeftControl, Mode = "Toggle"})
 
     local SmoothnessToggle = AimbotSection:Toggle({Name = "Enable Smoothness", Default = false, Flag = "AimbotSmoothnessEnable"})
-    local SmoothnessSlider = AimbotSection:Slider({Name = "Smoothness X", Min = 0, Max = 100, Default = 50, Flag = "AimbotSmoothnessX"})
+    local SmoothnessSliderX = AimbotSection:Slider({Name = "Smoothness X", Min = 0, Max = 100, Default = 50, Flag = "AimbotSmoothnessX"})
+    local SmoothnessSliderY = AimbotSection:Slider({Name = "Smoothness Y", Min = 0, Max = 100, Default = 50, Flag = "AimbotSmoothnessY"})
 
     local PredictionToggle = AimbotSection:Toggle({Name = "Enable Prediction", Default = false, Flag = "AimbotPredictionEnable"})
-    local PredictionSlider = AimbotSection:Slider({Name = "Prediction X", Min = 0, Max = 20, Default = 10, Flag = "AimbotPredictionX"})
+    local PredictionSliderX = AimbotSection:Slider({Name = "Prediction X", Min = 0, Max = 20, Default = 10, Flag = "AimbotPredictionX"})
+    local PredictionSliderY = AimbotSection:Slider({Name = "Prediction Y", Min = 0, Max = 20, Default = 10, Flag = "AimbotPredictionY"})
 
     local OffsetToggle = AimbotSection:Toggle({Name = "Enable Offset", Default = false, Flag = "AimbotOffsetEnable"})
     local OffsetXSlider = AimbotSection:Slider({Name = "Offset X", Min = -10, Max = 10, Default = 0, Flag = "AimbotOffsetX"})
@@ -7180,29 +7182,36 @@ do -- Aimbot (First Tab) - Redesigned per image
     ConfigsSection:Label({Message = "Configs"})
 end
 --
-do -- Visuals
-    local VisualsSubSection, VisualsSubSection2, VisualsSubSection3, VisualsSubSection4 = Visuals:SubSection({Name = "Category", Options = {"rbxassetid://18334627891", "rbxassetid://18334630306", "rbxassetid://18334626899", "rbxassetid://18334625304"}})
-    VisualsSubSection2:Section({Side = "Right", Fill = true})
-    VisualsSubSection2:Section({Fill = true})
-    VisualsSubSection4:Section({Side = "Right", Fill = true})
-    VisualsSubSection4:Section({Fill = true})
-
-    local PreviewVisualSection = VisualsSubSection:Section({Side = "Right", Size = 150})
-    local PreviewExtraSection1 = VisualsSubSection:Section({Side = "Right", Fill = true})
-    local PreviewExtraSection2 = VisualsSubSection:Section({Fill = true})
-    local Slider1, Slider2 = nil, nil
-    --
-    PreviewVisualSection:Dropdown({Content = {"test2", "Test3"}})
-    PreviewVisualSection:MultiBox({Content = {"test2", "Test3"}})
-    PreviewVisualSection:Toggle({Risky = true, Callback = function(State)
-        if not (Slider1 and Slider2) then return end
-        --
-        Slider1:SetVisible(State)
-        Slider2:SetVisible(State)
-    end})
-    --
-    Slider1 = PreviewVisualSection:Slider({Hidden = true})
-    Slider2 = PreviewVisualSection:Slider({Name = "FOV", Hidden = true, Min = 0, Max = 11, Default = 5, Decimal = 1, Ending = "°", Disable = {"Disabled", 0, 11}})
+do -- Visuals (Second Tab) - Enemy ESP and World
+    -- Only two sub-sections: Enemy ESP and World
+    local EnemySubSection, WorldSubSection = Visuals:SubSection({Name = "Category", Options = {"rbxassetid://18334627891", "rbxassetid://18334625304"}})
+    
+    -- Enemy ESP Section (first)
+    local ESPSection = EnemySubSection:Section({Fill = true})
+    local ESPToggle = ESPSection:Toggle({Name = "Enable ESP", Default = false, Flag = "ESPEnable"})
+    ESPToggle:Keybind({Default = Enum.KeyCode.End, Mode = "Toggle"})
+    ESPSection:Toggle({Name = "Boxes", Default = false, Flag = "ESPBoxes"})
+    ESPSection:Toggle({Name = "Names", Default = false, Flag = "ESPNames"})
+    ESPSection:Toggle({Name = "Health", Default = false, Flag = "ESPHealth"})
+    ESPSection:Toggle({Name = "Distance", Default = false, Flag = "ESPDistance"})
+    ESPSection:Toggle({Name = "Weapon", Default = false, Flag = "ESPWeapon"})
+    ESPSection:Toggle({Name = "Tracers", Default = false, Flag = "ESPTracers"})
+    ESPSection:Toggle({Name = "Chams", Default = false, Flag = "ESPChams"})
+    ESPSection:Toggle({Name = "Skeleton", Default = false, Flag = "ESPSkeleton"})
+    
+    -- World Section (second)
+    local WorldSection = WorldSubSection:Section({Fill = true})
+    WorldSection:Toggle({Name = "Texture Changer", Default = false, Flag = "WorldTextureChanger"})
+    WorldSection:Toggle({Name = "Skybox Spin", Default = false, Flag = "WorldSkyboxSpin"})
+    WorldSection:Dropdown({Name = "Skybox Changer", Content = {"Default", "Night", "Sunset", "Cloudy"}, Default = "Default", Flag = "WorldSkybox"})
+    WorldSection:Toggle({Name = "Rain", Default = false, Flag = "WorldRain"})
+    WorldSection:Toggle({Name = "Snow", Default = false, Flag = "WorldSnow"})
+    WorldSection:Toggle({Name = "Fog", Default = false, Flag = "WorldFog"})
+    WorldSection:Slider({Name = "Fog Density", Min = 0, Max = 1, Default = 0.5, Decimal = 0.1, Flag = "WorldFogDensity"})
+    -- Additional world features
+    WorldSection:Slider({Name = "Time of Day", Min = 0, Max = 24, Default = 12, Decimal = 1, Ending = "h", Flag = "WorldTime"})
+    WorldSection:Toggle({Name = "Bloom", Default = false, Flag = "WorldBloom"})
+    WorldSection:Toggle({Name = "Depth of Field", Default = false, Flag = "WorldDOF"})
 end
 --
 do -- Settings
@@ -7235,8 +7244,6 @@ do -- Weapons
     SkinList:AddValue("Test Skin 3", {Image = "http://www.roblox.com/asset/?id=12206409737", Color = Color3.fromRGB(198, 7, 232), Size = UDim2.fromOffset(5, 5), Position = UDim2.new(0, 11, 0.5, 0)})
     SkinList:AddValue("Test Skin 4", {Image = "http://www.roblox.com/asset/?id=12206409737", Color = Color3.fromRGB(36, 232, 1), Size = UDim2.fromOffset(5, 5), Position = UDim2.new(0, 11, 0.5, 0)})
 end
---
--- Removed Aimbot SubSection
 --
 do -- PlayerList
     local PlayerSection = PlayerList:Section({Name = "Players", Fill = true})
@@ -7306,8 +7313,6 @@ do -- Configs
         LuaSection:Button({Name = "Refresh list"})
     end
 end
---
--- Removed Lua tab content
 --
 do -- Connections
     Library:Connection(Players.PlayerAdded, function(Player)

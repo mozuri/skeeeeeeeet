@@ -7122,19 +7122,17 @@ end
 --
 local Window = Library:Window({CloseBind = Enum.KeyCode.Insert})
 local Rage = Window:CreateTab({Icon = "rbxassetid://18248771514"})
-local AntiAim = Window:CreateTab({Icon = "rbxassetid://15453313321"})
-local Aimbot = Window:CreateTab({Icon = "rbxassetid://15453335745"})
+-- Removed AntiAim (2nd tab)
+-- Removed Aimbot (3rd tab)
 local Visuals = Window:CreateTab({Icon = "rbxassetid://15453344494"})
 local Settings = Window:CreateTab({Icon = "rbxassetid://15453349637"})
 local Weapons = Window:CreateTab({Icon = "rbxassetid://15453354931"})
 local PlayerList = Window:CreateTab({Icon = "rbxassetid://15453359751"})
 local Configs = Window:CreateTab({Icon = "rbxassetid://15453364412"})
-local Lua = Window:CreateTab({Icon = "rbxassetid://18240049800"})
+-- Removed Lua (9th tab)
 local ActualPlayerList
 --
-Window:SetTab(8)
-AntiAim:Section({Fill = true})
-AntiAim:Section({Fill = true, Side = "Right"})
+Window:SetTab(6) -- Now Configs is the 6th tab (was 8th)
 --
 do -- Rage
     Rage:ImageDropdown({Name = "Weapon type", Flag = "RageWeaponType", Options = {["Global"] = {Icon = "rbxassetid://18657040454", Order = 1}, ["Double Barrel SG"] = {Icon = "rbxassetid://18205706952", Order = 2}, ["Revolver"] = {Icon = "rbxassetid://18205704829", Order = 3}, ["LMG"] = {Icon = "rbxassetid://18205822505", Order = 4}}, Default = "Global"})
@@ -7176,7 +7174,6 @@ do -- Visuals
 	VisualsSubSection2:Section({Fill = true})
 	VisualsSubSection4:Section({Side = "Right", Fill = true})
 	VisualsSubSection4:Section({Fill = true})
-
 
 	local PreviewVisualSection = VisualsSubSection:Section({Side = "Right", Size = 150})
 	local PreviewExtraSection1 = VisualsSubSection:Section({Side = "Right", Fill = true})
@@ -7227,9 +7224,7 @@ do -- Weapons
 	SkinList:AddValue("Test Skin 4", {Image = "http://www.roblox.com/asset/?id=12206409737", Color = Color3.fromRGB(36, 232, 1), Size = UDim2.fromOffset(5, 5), Position = UDim2.new(0, 11, 0.5, 0)})
 end
 --
-do -- Aimbot
-	local AimbotSubSection, AimbotSubSection2 = Aimbot:SubSection({Name = "Category", Options = {"rbxassetid://18686402989", "rbxassetid://18657040454", "rbxassetid://18205704829", "rbxassetid://18205706952", "rbxassetid://18205822505"}})
-end
+-- Removed Aimbot SubSection
 --
 do -- PlayerList
 	local PlayerSection = PlayerList:Section({Name = "Players", Fill = true})
@@ -7300,10 +7295,7 @@ do -- Configs
 	end
 end
 --
-do -- Lua
-	local TabA = Lua:Section({Name = "Tab A", Fill = true})
-	local TabB = Lua:Section({Name = "Tab B", Side = "Right", Fill = true})
-end
+-- Removed Lua tab content
 --
 do -- Connections
 	Library:Connection(Players.PlayerAdded, function(Player)

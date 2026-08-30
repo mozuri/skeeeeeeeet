@@ -3964,15 +3964,7 @@ do -- Library
                 --
                 return Keybind
             end
-            --
-            --[[function Label:Update()
-                LabelText.Size = UDim2.new(LabelText.Size.X.Scale, LabelText.Size.X.Offset, 0, math.huge)
-                LabelText.Size = UDim2.new(LabelText.Size.X.Scale, LabelText.Size.X.Offset, 0, LabelText.TextBounds.Y)
-                PreviewLabel.Size = UDim2.new(PreviewLabel.Size.X.Scale, PreviewLabel.Size.X.Offset, 0, LabelName.TextBounds.Y + 6)
-            end]]
         end
-        --
-        --Label:Update()
         --
         if Options.Hidden then
             Label:SetVisible(false)
@@ -7120,6 +7112,49 @@ do -- Library
     end
 end
 --
+-- ===== SKIN DATA (from your txt) =====
+Skins = {
+    Guns = {
+        "Void Dragon", "Hell Hound", "Snow Dragon", "Lovestruck", "Adurite",
+        "Ascension", "Hallows", "Candy Cane", "Heartbringer", "Black Cat",
+        "Arctic", "Cupid", "Lightbringer", "Deathbringer", "Hell Dragon",
+        "Kitty", "Kirumi", "Blacksteel Dragon", "Shiryus Breath", "Poseidon",
+        "Phoenix", "Amethyst", "Arsenic", "Volcanic Ashes", "Floral",
+        "Binary", "Voxel", "Hello Kitty", "Radiation", "Void",
+        "Hexagram", "Strawberry Shortcake", "Black Ice", "Crimson Fangs",
+        "Green Tint", "Ember"
+    },
+    BulletBeams = {
+        "Lightning", "Beta", "Hallows", "Kitty", "Kirumi",
+        "Rainbow", "Red", "Blue", "Green", "Orange"
+    },
+    Misc = {
+        "Coin", "Common Shard", "Epic Shard", "Legendary Shard"
+    },
+    Knives = {
+        "Bitcoin", "Beta", "Fishbone", "Nightblade"
+    },
+    Frames = {
+        "Lightbringer", "Deathbringer", "Aurora", "Cyan Waves",
+        "Dusk", "Valley", "Sakura", "Lotus"
+    },
+    Items = {
+        "Angel Wings", "Water Gun", "Heart Balloon", "Snowball Launcher",
+        "Mysterious Apple", "Firework Launcher", "Flintlock", "Rope",
+        "LuckPotion", "Loot Capsule", "Capsule Key"
+    },
+    Tags = {
+        "Verified", "Binary", "Star", "Beta", "Snow", "Easter",
+        "Ghost", "Zombie", "Blood", "<3", "Meow"
+    },
+    Enchants = {
+        "Flutter", "Subzero", "Eruption", "Spirit", "Slaughter"
+    },
+    Charms = {
+        "Beta", "Lucky", "Snowflake", "Kirumi", "Hell Hound"
+    }
+}
+--
 local Window = Library:Window({CloseBind = Enum.KeyCode.Insert})
 local Rage = Window:CreateTab({Icon = "rbxassetid://18248771514"})
 -- Removed AntiAim (2nd tab)
@@ -7132,16 +7167,14 @@ local Configs = Window:CreateTab({Icon = "rbxassetid://15453364412"})
 -- Removed Lua (9th tab)
 local ActualPlayerList
 --
-Window:SetTab(6) -- Now Configs is the 6th tab (was 8th)
+Window:SetTab(6) -- Configs is now the 6th tab
 --
-do -- Aimbot (First Tab) - Redesigned per image
-    -- Aimbot Section
+do -- Aimbot (First Tab)
     local AimbotSection = Rage:Section({Fill = true})
     local SilentAimSection = Rage:Section({Fill = true, Side = "Right"})
     local TriggerbotSection = Rage:Section({Fill = true})
     local ConfigsSection = Rage:Section({Fill = true, Side = "Right"})
 
-    -- Aimbot
     local AimbotEnable = AimbotSection:Toggle({Name = "Enable Aimbot", Default = false, Flag = "AimbotEnable"})
     AimbotEnable:Keybind({Default = Enum.KeyCode.LeftControl, Mode = "Toggle"})
 
@@ -7164,29 +7197,25 @@ do -- Aimbot (First Tab) - Redesigned per image
     AimbotSection:Toggle({Name = "Distance Check", Default = false, Flag = "AimbotDistance"})
     AimbotSection:Toggle({Name = "Visible Check", Default = false, Flag = "AimbotVisible"})
 
-    -- Silent Aim
     local SilentAimEnable = SilentAimSection:Toggle({Name = "Enable Silent Aim", Default = false, Flag = "SilentAimEnable"})
     SilentAimEnable:Keybind({Default = Enum.KeyCode.LeftShift, Mode = "Toggle"})
 
     SilentAimSection:Dropdown({Name = "Hitbox", Content = {"Head", "Chest", "Legs"}, Default = "Head", Flag = "SilentAimHitbox"})
     SilentAimSection:Toggle({Name = "Auto Shoot", Default = false, Flag = "SilentAimAutoShoot"})
 
-    -- Triggerbot
     local TriggerbotEnable = TriggerbotSection:Toggle({Name = "Enable Triggerbot", Default = false, Flag = "TriggerbotEnable"})
     TriggerbotEnable:Keybind({Default = Enum.KeyCode.LeftAlt, Mode = "Toggle"})
 
     TriggerbotSection:Slider({Name = "Delay (ms)", Min = 0, Max = 1000, Default = 500, Flag = "TriggerbotDelay"})
     TriggerbotSection:Slider({Name = "FOV", Min = 0, Max = 150, Default = 75, Flag = "TriggerbotFOV"})
 
-    -- Configs
     ConfigsSection:Label({Message = "Configs"})
 end
 --
-do -- Visuals (Second Tab) - Enemy ESP and World
-    -- Only two sub-sections: Enemy ESP and World
+do -- Visuals (Second Tab)
     local EnemySubSection, WorldSubSection = Visuals:SubSection({Name = "Category", Options = {"rbxassetid://18334627891", "rbxassetid://18334625304"}})
     
-    -- Enemy ESP Section (first)
+    -- Enemy ESP Section
     local ESPSection = EnemySubSection:Section({Fill = true})
     local ESPToggle = ESPSection:Toggle({Name = "Enable ESP", Default = false, Flag = "ESPEnable"})
     ESPToggle:Keybind({Default = Enum.KeyCode.End, Mode = "Toggle"})
@@ -7199,43 +7228,55 @@ do -- Visuals (Second Tab) - Enemy ESP and World
     ESPSection:Toggle({Name = "Chams", Default = false, Flag = "ESPChams"})
     ESPSection:Toggle({Name = "Skeleton", Default = false, Flag = "ESPSkeleton"})
     
-    -- World Section (second)
-    local WorldSection = WorldSubSection:Section({Fill = true})
-    WorldSection:Toggle({Name = "Texture Changer", Default = false, Flag = "WorldTextureChanger"})
-    WorldSection:Toggle({Name = "Skybox Spin", Default = false, Flag = "WorldSkyboxSpin"})
-    WorldSection:Dropdown({Name = "Skybox Changer", Content = {"Default", "Night", "Sunset", "Cloudy"}, Default = "Default", Flag = "WorldSkybox"})
-    WorldSection:Toggle({Name = "Rain", Default = false, Flag = "WorldRain"})
-    WorldSection:Toggle({Name = "Snow", Default = false, Flag = "WorldSnow"})
-    WorldSection:Toggle({Name = "Fog", Default = false, Flag = "WorldFog"})
-    WorldSection:Slider({Name = "Fog Density", Min = 0, Max = 1, Default = 0.5, Decimal = 0.1, Flag = "WorldFogDensity"})
-    -- Additional world features
-    WorldSection:Slider({Name = "Time of Day", Min = 0, Max = 24, Default = 12, Decimal = 1, Ending = "h", Flag = "WorldTime"})
-    WorldSection:Toggle({Name = "Bloom", Default = false, Flag = "WorldBloom"})
-    WorldSection:Toggle({Name = "Depth of Field", Default = false, Flag = "WorldDOF"})
+    -- World Section
+    local WorldLeft = WorldSubSection:Section({Fill = true})
+    local WorldRight = WorldSubSection:Section({Fill = true, Side = "Right"})
+    
+    WorldLeft:Toggle({Name = "Skybox Spin", Default = false, Flag = "WorldSkyboxSpin"})
+    WorldLeft:Dropdown({Name = "Skybox Changer", Content = {"Default", "Night", "Sunset", "Cloudy"}, Default = "Default", Flag = "WorldSkybox"})
+    WorldLeft:Toggle({Name = "Rain", Default = false, Flag = "WorldRain"})
+    WorldLeft:Toggle({Name = "Snow", Default = false, Flag = "WorldSnow"})
+    WorldLeft:Toggle({Name = "Fog", Default = false, Flag = "WorldFog"})
+    WorldLeft:Slider({Name = "Fog Density", Min = 0, Max = 1, Default = 0.5, Decimal = 0.1, Flag = "WorldFogDensity"})
+    WorldLeft:Slider({Name = "Time of Day", Min = 0, Max = 24, Default = 12, Decimal = 1, Ending = "h", Flag = "WorldTime"})
+    WorldLeft:Toggle({Name = "Bloom", Default = false, Flag = "WorldBloom"})
+    WorldLeft:Toggle({Name = "Depth of Field", Default = false, Flag = "WorldDOF"})
+    
+    -- Right side: Texture Changer dropdown and Headless
+    WorldRight:Dropdown({Name = "Texture Changer", Content = {"Default", "Wood", "Metal", "Glass"}, Default = "Default", Flag = "WorldTexture"})
+    WorldRight:Toggle({Name = "Headless", Default = false, Flag = "WorldHeadless"})
 end
 --
-do -- Settings
+do -- Settings (Third Tab)
     local SettingsSection = Settings:Section({Name = "Settings", Side = "Right", Fill = true})
     --
-    do -- Settings
-        SettingsSection:Label({Message = "Menu key"}):Keybind({Default = Enum.KeyCode.Insert, UseMode = false, Callback = function(Key) Library.UI.CloseBind = Key end})
-        SettingsSection:Label({Message = "Menu color"}):ColorPicker({Default = Library.Theme.Default.Accent, Callback = function(Color)
-            Library:UpdateColor("Accent", Color)
-            Library:UpdateColor("SecondAccent", Color3.fromRGB(math.max(math.floor(Color.R * 255) - 12, 0), math.max(math.floor(Color.G * 255) - 12, 0), math.max(math.floor(Color.B * 255) - 12, 0)))
-        end})
-        SettingsSection:Slider({Name = "Menu animation speed", Min = 0, Max = 150, Default = 100, Ending = "%", Disable = {"Off", 0, 150}, Callback = function(Value)
-            local MinSource, MaxSource = 1, 150
-            local MinTarget, MaxTarget = 0.8, 0.1
-            local NewValue = MinTarget + ((Value - MinSource) * (MaxTarget - MinTarget)) / (MaxSource - MinSource)
-            --
-            Library.UI.TweenSpeed = Value == (0 or 150) and 0 or NewValue
-        end})
-        SettingsSection:Button({Name = "Unload", Callback = Library.Unload})
-        SettingsSection:Button({Name = "Disable all", Callback = Library.Disable})
-    end
+    SettingsSection:Label({Message = "Menu key"}):Keybind({Default = Enum.KeyCode.Insert, UseMode = false, Callback = function(Key) Library.UI.CloseBind = Key end})
+    SettingsSection:Label({Message = "Menu color"}):ColorPicker({Default = Library.Theme.Default.Accent, Callback = function(Color)
+        Library:UpdateColor("Accent", Color)
+        Library:UpdateColor("SecondAccent", Color3.fromRGB(math.max(math.floor(Color.R * 255) - 12, 0), math.max(math.floor(Color.G * 255) - 12, 0), math.max(math.floor(Color.B * 255) - 12, 0)))
+    end})
+    SettingsSection:Slider({Name = "Menu animation speed", Min = 0, Max = 150, Default = 100, Ending = "%", Disable = {"Off", 0, 150}, Callback = function(Value)
+        local MinSource, MaxSource = 1, 150
+        local MinTarget, MaxTarget = 0.8, 0.1
+        local NewValue = MinTarget + ((Value - MinSource) * (MaxTarget - MinTarget)) / (MaxSource - MinSource)
+        Library.UI.TweenSpeed = Value == (0 or 150) and 0 or NewValue
+    end})
+    SettingsSection:Button({Name = "Unload", Callback = Library.Unload})
+    SettingsSection:Button({Name = "Disable all", Callback = Library.Disable})
+    
+    -- Misc section
+    local MiscSection = Settings:Section({Name = "Misc", Fill = true})
+    MiscSection:Toggle({Name = "Speed", Default = false, Flag = "MiscSpeed"})
+    MiscSection:Toggle({Name = "Jump", Default = false, Flag = "MiscJump"})
+    MiscSection:Toggle({Name = "Fly", Default = false, Flag = "MiscFly"})
+    MiscSection:Toggle({Name = "NoClip", Default = false, Flag = "MiscNoClip"})
+    MiscSection:Toggle({Name = "Infinite Ammo", Default = false, Flag = "MiscInfiniteAmmo"})
+    MiscSection:Toggle({Name = "Instant Reload", Default = false, Flag = "MiscInstantReload"})
+    MiscSection:Slider({Name = "Walk Speed", Min = 0, Max = 100, Default = 16, Flag = "MiscWalkSpeed"})
+    MiscSection:Slider({Name = "Jump Power", Min = 0, Max = 200, Default = 50, Flag = "MiscJumpPower"})
 end
 --
-do -- Weapons
+do -- Weapons (Fourth Tab)
     local SkinsSection = Weapons:Section({Name = "Skins", Fill = true})
     local SkinList = SkinsSection:List({Size = 200})
     --
@@ -7243,9 +7284,17 @@ do -- Weapons
     SkinList:AddValue("Test Skin 2", {Image = "http://www.roblox.com/asset/?id=12206409737", Color = Color3.fromRGB(2, 144, 232), Size = UDim2.fromOffset(5, 5), Position = UDim2.new(0, 11, 0.5, 0)})
     SkinList:AddValue("Test Skin 3", {Image = "http://www.roblox.com/asset/?id=12206409737", Color = Color3.fromRGB(198, 7, 232), Size = UDim2.fromOffset(5, 5), Position = UDim2.new(0, 11, 0.5, 0)})
     SkinList:AddValue("Test Skin 4", {Image = "http://www.roblox.com/asset/?id=12206409737", Color = Color3.fromRGB(36, 232, 1), Size = UDim2.fromOffset(5, 5), Position = UDim2.new(0, 11, 0.5, 0)})
+    
+    -- Skin Changer section
+    local SkinChangerSection = Weapons:Section({Name = "Skin Changer", Side = "Right", Fill = true})
+    local SkinEnable = SkinChangerSection:Toggle({Name = "Enable Skin Changer", Default = false, Flag = "SkinEnable"})
+    SkinChangerSection:Dropdown({Name = "Double Barrel", Content = Skins.Guns, Default = Skins.Guns[1], Flag = "SkinDB"})
+    SkinChangerSection:Dropdown({Name = "Revolver", Content = Skins.Guns, Default = Skins.Guns[1], Flag = "SkinRevolver"})
+    SkinChangerSection:Dropdown({Name = "Tactical Shotgun", Content = Skins.Guns, Default = Skins.Guns[1], Flag = "SkinTactical"})
+    SkinChangerSection:Dropdown({Name = "Beam", Content = Skins.BulletBeams, Default = Skins.BulletBeams[1], Flag = "SkinBeam"})
 end
 --
-do -- PlayerList
+do -- PlayerList (unchanged)
     local PlayerSection = PlayerList:Section({Name = "Players", Fill = true})
     local PlayerAdjustments = PlayerList:Section({Name = "Adjustments", Fill = true, Side = "Right"})
     --
@@ -7270,7 +7319,7 @@ do -- PlayerList
     end
 end
 --
-do -- Configs
+do -- Configs (unchanged)
     local ConfigSection = Configs:Section({Name = "Configs", Fill = true})
     local LuaSection = Configs:Section({Name = "LUA", Side = "Right", Fill = true})
     --
@@ -7281,20 +7330,20 @@ do -- Configs
         --
         ConfigSection:Button({Name = "Update config", Callback = function()
             if Library.Flags["CurrentConfig"]:Get() then
-                writefile("LuckyHub/Configs/" .. Library.Flags["CurrentConfig"]:Get() .. ".cfg", Library:GetConfig())
+                writefile("gamesnooze/Configs/" .. Library.Flags["CurrentConfig"]:Get() .. ".cfg", Library:GetConfig())
             end
         end})
         ConfigSection:Button({Name = "Load config", Callback = function()
             if Library.Flags["CurrentConfig"]:Get() then
-                Library:LoadConfig(readfile("LuckyHub/Configs/" .. Library.Flags["CurrentConfig"]:Get() .. ".cfg"))
+                Library:LoadConfig(readfile("gamesnooze/Configs/" .. Library.Flags["CurrentConfig"]:Get() .. ".cfg"))
             end
         end})
         ConfigSection:TextBox({Flag = "ConfigName"})
         ConfigSection:Button({Name = "Create config", Callback = function()
             local ConfigName = Library.Flags["ConfigName"]:Get()
             --
-            if Library.Flags["ConfigName"]:Get() ~= "" and not isfile("LuckyHub/Configs/" .. ConfigName .. ".cfg") then
-                writefile("LuckyHub/Configs/" .. ConfigName .. ".cfg", Library:GetConfig())
+            if Library.Flags["ConfigName"]:Get() ~= "" and not isfile("gamesnooze/Configs/" .. ConfigName .. ".cfg") then
+                writefile("gamesnooze/Configs/" .. ConfigName .. ".cfg", Library:GetConfig())
                 --
                 ConfigList:AddValue(ConfigName)
             end

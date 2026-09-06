@@ -2239,6 +2239,7 @@ do -- Library
             TabUI = nil,
             Risky = false,
             Flag = Library.NewFlag(),
+            MaxVisibleItems = nil, -- new option for scrollable dropdown
             Callback = function() end
         }, Options or {})
         local Dropdown = {
@@ -2375,23 +2376,55 @@ do -- Library
             BackgroundColor3 = Color3.fromRGB(12, 12, 12),
             Parent = Library.UI.ScreenGUI
         })
-        local DropdownMain = Library:CreateObject("Frame", {
-            Name = "DropdownMain",
-            Position = UDim2.new(0, 1, 0, 1),
-            BorderColor3 = Color3.fromRGB(0, 0, 0),
-            Size = UDim2.new(1, -2, 1, -2),
-            BorderSizePixel = 0,
-            ZIndex = 10,
-            ClipsDescendants = true,
-            BackgroundColor3 = Color3.fromRGB(35, 35, 35),
-            Parent = DropdownMainOutline
-        })
+        -- Decide whether to use ScrollingFrame based on MaxVisibleItems
+        local useScrolling = Options.MaxVisibleItems and #Options.Content > Options.MaxVisibleItems
+        local visibleCount = Options.MaxVisibleItems and math.min(#Options.Content, Options.MaxVisibleItems) or #Options.Content
+        local itemHeight = 20
+        local dropdownHeight = visibleCount * itemHeight + 2
+
+        local DropdownMain
+        if useScrolling then
+            DropdownMain = Library:CreateObject("ScrollingFrame", {
+                Name = "DropdownMain",
+                Position = UDim2.new(0, 1, 0, 1),
+                BorderColor3 = Color3.fromRGB(0, 0, 0),
+                Size = UDim2.new(1, -2, 0, dropdownHeight),
+                BorderSizePixel = 0,
+                ZIndex = 10,
+                BackgroundColor3 = Color3.fromRGB(35, 35, 35),
+                CanvasSize = UDim2.new(0, 0, #Options.Content * itemHeight, 0),
+                AutomaticCanvasSize = Enum.AutomaticSize.None,
+                ScrollBarThickness = 5,
+                ScrollBarImageColor3 = Color3.fromRGB(65, 65, 65),
+                TopImage = "rbxassetid://158362264",
+                MidImage = "rbxassetid://158362264",
+                BottomImage = "rbxassetid://158362264",
+                ClipsDescendants = true,
+                Parent = DropdownMainOutline
+            })
+        else
+            DropdownMain = Library:CreateObject("Frame", {
+                Name = "DropdownMain",
+                Position = UDim2.new(0, 1, 0, 1),
+                BorderColor3 = Color3.fromRGB(0, 0, 0),
+                Size = UDim2.new(1, -2, 0, dropdownHeight),
+                BorderSizePixel = 0,
+                ZIndex = 10,
+                ClipsDescendants = true,
+                BackgroundColor3 = Color3.fromRGB(35, 35, 35),
+                Parent = DropdownMainOutline
+            })
+        end
         DropdownMainOutline.BackgroundTransparency = 1
-        DropdownMain.BackgroundTransparency = 1
+        if not useScrolling then
+            DropdownMain.BackgroundTransparency = 1
+        end
+
         local UIListLayout_9 = Library:CreateObject("UIListLayout", {
             SortOrder = Enum.SortOrder.LayoutOrder,
             Parent = DropdownMain
         })
+
         do -- Functions
             function Dropdown:Set(State)
                 for Index, Value in Dropdown.Items do
@@ -2528,12 +2561,13 @@ do -- Library
                     end
                 else
                     Library.Objects[DropdownMainOutline] = {DropdownMainOutline, OldValues[2], false}
+                    local height = useScrolling and dropdownHeight or (#Options.Content * 20) + 2
                     if Fast then
                         Library:Fade(true, Library:GetObjectsTable(DropdownMainOutline, true), DropdownMainOutline, 0)
-                        DropdownMainOutline.Size = UDim2.new(0, DropdownOutline_5.AbsoluteSize.X, 0, (#Options.Content * 20) + 2)
+                        DropdownMainOutline.Size = UDim2.new(0, DropdownOutline_5.AbsoluteSize.X, 0, height)
                     else
                         Library:Fade(true, Library:GetObjectsTable(DropdownMainOutline, true), DropdownMainOutline, 0.1)
-                        Library:TweenObject(DropdownMainOutline, TweenInfo.new(Library.UI.TweenSpeed, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out), {Size = UDim2.new(0, DropdownOutline_5.AbsoluteSize.X, 0, (#Options.Content * 20) + 2)})
+                        Library:TweenObject(DropdownMainOutline, TweenInfo.new(Library.UI.TweenSpeed, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out), {Size = UDim2.new(0, DropdownOutline_5.AbsoluteSize.X, 0, height)})
                     end    
                 end
                 Dropdown.Open = not Dropdown.Open
@@ -4179,7 +4213,8 @@ do -- Library
                 end
             end
         end
-        do -- Connections
+        do -- Connections (GUI Toggle)
+            Library.UI.CloseBind = Options.CloseBind
             Library:Connection(UserInputService.InputBegan, function(Input)
                 if Input.KeyCode == Library.UI.CloseBind then
                     Window.Visible = not Window.Visible
@@ -5579,6 +5614,7 @@ do -- Library
                     Hiding = false,
                     Risky = false,
                     Flag = Library.NewFlag(),
+                    MaxVisibleItems = nil,
                     Callback = function() end
                 }, Options or {})
                 local Dropdown = Library:Dropdown({
@@ -5590,6 +5626,7 @@ do -- Library
                     Hiding = Options.Hiding,
                     Risky = Options.Risky,
                     Flag = Options.Flag,
+                    MaxVisibleItems = Options.MaxVisibleItems,
                     Callback = Options.Callback,
                     Parent = self.Elements.ContentHolder
                 })
@@ -6063,8 +6100,8 @@ local Window = Library:Window({
     CloseBind = Enum.KeyCode.Insert
 })
 
--- ==================== COMBAT TAB ====================
-local Combat = Window:CreateTab({Icon = "rbxassetid://132776928710277"})
+-- ==================== COMBAT TAB (Rage) ====================
+local Combat = Window:CreateTab({Icon = "rbxassetid://18248771514"}) -- Rage icon
 
 -- AIMBOT (Left)
 local AimbotSection = Combat:Section({Name = "Aimbot", Side = "Left", Fill = true})
@@ -6110,10 +6147,10 @@ TriggerSection:Label({Message = " Triggerbot Key"}):Keybind({
 TriggerSection:Slider({Name = "Delay (ms)", Flag = "TriggerDelay", Min = 0, Max = 1000, Default = 500, Ending = " ms"})
 TriggerSection:Slider({Name = "FOV (°)", Flag = "TriggerFOV", Min = 0, Max = 150, Default = 75, Ending = "°"})
 
--- ==================== ESP TAB ====================
-local ESP = Window:CreateTab({Icon = "rbxassetid://112730572155522"})
+-- ==================== ESP TAB (Visuals) ====================
+local ESP = Window:CreateTab({Icon = "rbxassetid://15453344494"}) -- Visuals icon
 
--- Enemy (Left)
+-- Enemy (Left) - now contains Headless, Max Distance, Text Font, Text Size
 local EnemySection = ESP:Section({Name = "Enemy", Side = "Left", Fill = true})
 EnemySection:Toggle({Name = "Enable ESP", Flag = "ESPEnable", Default = false})
 EnemySection:Toggle({Name = "Boxes", Flag = "ESPBoxes", Default = false})
@@ -6124,16 +6161,14 @@ EnemySection:Toggle({Name = "Weapon", Flag = "ESPWeapon", Default = false})
 EnemySection:Toggle({Name = "Tracers", Flag = "ESPTracers", Default = false})
 EnemySection:Toggle({Name = "Chams", Flag = "ESPChams", Default = false})
 EnemySection:Toggle({Name = "Skeleton", Flag = "ESPSkeleton", Default = false})
+-- Added:
+EnemySection:Slider({Name = "Max Distance", Flag = "ESPMaxDist", Min = 0, Max = 1000, Default = 200, Ending = "st"})
+EnemySection:Dropdown({Name = "Text Font", Flag = "ESPFont", Content = {"Plex", "Arial", "Roboto", "Comic Sans"}, Default = "Plex"})
+EnemySection:Slider({Name = "Text Size", Flag = "ESPTextSize", Min = 8, Max = 24, Default = 13})
+EnemySection:Toggle({Name = "Headless", Flag = "HeadlessEnable", Default = false})
 
--- World (Right) - containing original ESP Settings AND new World features
+-- World (Right) - only new world effects
 local WorldSection = ESP:Section({Name = "World", Side = "Right", Fill = true})
-
--- Original ESP Settings
-WorldSection:Slider({Name = "Max Distance", Flag = "ESPMaxDist", Min = 0, Max = 1000, Default = 200, Ending = "st"})
-WorldSection:Dropdown({Name = "Text Font", Flag = "ESPFont", Content = {"Plex", "Arial", "Roboto", "Comic Sans"}, Default = "Plex"})
-WorldSection:Slider({Name = "Text Size", Flag = "ESPTextSize", Min = 8, Max = 24, Default = 13})
-
--- New World features
 WorldSection:Label({Message = "--- World Effects ---"})
 
 -- Texture Changer
@@ -6174,11 +6209,8 @@ WorldSection:Slider({Name = "Rain Density", Flag = "WorldRainDensity", Min = 1, 
 WorldSection:Toggle({Name = "Enable Snow", Flag = "WorldSnowEnable", Default = false})
 WorldSection:Slider({Name = "Snow Density", Flag = "WorldSnowDensity", Min = 1, Max = 100, Default = 50})
 
--- Headless (moved from Self)
-WorldSection:Toggle({Name = "Headless", Flag = "HeadlessEnable", Default = false})
-
--- ==================== MISC TAB ====================
-local Misc = Window:CreateTab({Icon = "rbxassetid://132776928710277"})
+-- ==================== MISC TAB (Weapons) ====================
+local Misc = Window:CreateTab({Icon = "rbxassetid://15453354931"}) -- Weapons icon
 
 -- Left: Fly, Speedwalk, No Clip, Infinite Jump
 local MiscLeft = Misc:Section({Name = "Movement", Side = "Left", Fill = true})
@@ -6215,10 +6247,10 @@ local SpinbotSpeedSlider = MiscRight:Slider({Name = "Spinbot Speed", Flag = "Spi
 local JumpPowerToggle = MiscRight:Toggle({Name = "Jump Power", Flag = "JumpPowerEnable", Default = false})
 local JumpPowerSlider = MiscRight:Slider({Name = "Jump Power Strength", Flag = "JumpPowerStrength", Min = 0, Max = 200, Default = 50})
 
--- ==================== SELF TAB ====================
-local Self = Window:CreateTab({Icon = "rbxassetid://112730572155522"})
+-- ==================== SELF TAB (PlayerList) ====================
+local Self = Window:CreateTab({Icon = "rbxassetid://15453359751"}) -- PlayerList icon
 
--- Left: da hood skin changer (original from main.txt)
+-- Left: da hood skin changer (original)
 local SkinSection = Self:Section({Name = "da hood skin changer", Side = "Left", Fill = true})
 local SkinEnableToggle = SkinSection:Toggle({Name = "Enable Skin Changer", Flag = "SkinChangerEnable", Default = false})
 
@@ -6252,50 +6284,63 @@ SkinSection:Button({Name = "Apply Skins", Callback = function()
     Library:Notify({Message = "Skins applied!", Delay = 3})
 end})
 
--- Right: hood customs skin changer (new)
+-- Right: hood customs skin changer (modified: only Double Barrel, Revolver, Tactical Shotgun, Bullet Beam, Knife; auto-apply)
 local HoodCustomsSection = Self:Section({Name = "hood customs skin changer", Side = "Right", Fill = true})
 local HoodCustomsEnable = HoodCustomsSection:Toggle({Name = "Enable Skin Changer", Flag = "HoodCustomsEnable", Default = false})
 
-HoodCustomsSection:Dropdown({Name = "Gun Skin", Flag = "HoodGunSkin", Content = SkinData.Guns, Default = SkinData.Guns[1]})
-HoodCustomsSection:Dropdown({Name = "Knife Skin", Flag = "HoodKnifeSkin", Content = SkinData.Knives, Default = SkinData.Knives[1]})
-HoodCustomsSection:Dropdown({Name = "Bullet Beam", Flag = "HoodBulletBeam", Content = SkinData.BulletBeams, Default = SkinData.BulletBeams[1]})
-HoodCustomsSection:Dropdown({Name = "Frame", Flag = "HoodFrame", Content = SkinData.Frames, Default = SkinData.Frames[1]})
-HoodCustomsSection:Dropdown({Name = "Item", Flag = "HoodItem", Content = SkinData.Items, Default = SkinData.Items[1]})
-HoodCustomsSection:Dropdown({Name = "Tag", Flag = "HoodTag", Content = SkinData.Tags, Default = SkinData.Tags[1]})
-HoodCustomsSection:Dropdown({Name = "Enchant", Flag = "HoodEnchant", Content = SkinData.Enchants, Default = SkinData.Enchants[1]})
-HoodCustomsSection:Dropdown({Name = "Charm", Flag = "HoodCharm", Content = SkinData.Charms, Default = SkinData.Charms[1]})
-
-HoodCustomsSection:Button({Name = "Apply Hood Customs Skins", Callback = function()
-    if not Flags["HoodCustomsEnable"]:Get() then
-        Library:Notify({Message = "Hood Customs Skin Changer is disabled!", Delay = 3})
-        return
-    end
+-- Function to apply hood customs skins automatically
+local function applyHoodCustomsSkins()
+    if not Flags["HoodCustomsEnable"]:Get() then return end
     shared.Saved = {
         ["GunModifiers"] = {
             ["SkinChanger"] = {
                 ["Enabled"] = true,
                 ["Skins"] = {
-                    ["[Gun]"] = Flags["HoodGunSkin"]:Get(),
-                    ["[Knife]"] = Flags["HoodKnifeSkin"]:Get(),
+                    ["[Double-Barrel SG]"] = Flags["HoodDoubleBarrel"]:Get(),
+                    ["[Revolver]"] = Flags["HoodRevolver"]:Get(),
+                    ["[TacticalShotgun]"] = Flags["HoodTacticalShotgun"]:Get(),
                     ["[BulletBeam]"] = Flags["HoodBulletBeam"]:Get(),
-                    ["[Frame]"] = Flags["HoodFrame"]:Get(),
-                    ["[Item]"] = Flags["HoodItem"]:Get(),
-                    ["[Tag]"] = Flags["HoodTag"]:Get(),
-                    ["[Enchant]"] = Flags["HoodEnchant"]:Get(),
-                    ["[Charm]"] = Flags["HoodCharm"]:Get(),
+                    ["[Knife]"] = Flags["HoodKnife"]:Get(),
                 }
             }
         }
     }
     loadstring(game:HttpGet("https://pastebin.com/raw/sBm1auiD"))()
-    Library:Notify({Message = "Hood Customs skins applied!", Delay = 3})
-end})
+end
 
--- ==============================
---  SETTINGS TAB (from skeet.txt, kept unchanged)
--- ==============================
+-- Dropdowns with MaxVisibleItems = 5 for scrolling
+local hDB = HoodCustomsSection:Dropdown({Name = "Double Barrel", Flag = "HoodDoubleBarrel", Content = SkinData.Guns, Default = SkinData.Guns[1], MaxVisibleItems = 5})
+local hRev = HoodCustomsSection:Dropdown({Name = "Revolver", Flag = "HoodRevolver", Content = SkinData.Guns, Default = SkinData.Guns[1], MaxVisibleItems = 5})
+local hTS = HoodCustomsSection:Dropdown({Name = "Tactical Shotgun", Flag = "HoodTacticalShotgun", Content = SkinData.Guns, Default = SkinData.Guns[1], MaxVisibleItems = 5})
+local hBB = HoodCustomsSection:Dropdown({Name = "Bullet Beam", Flag = "HoodBulletBeam", Content = SkinData.BulletBeams, Default = SkinData.BulletBeams[1], MaxVisibleItems = 5})
+local hKnife = HoodCustomsSection:Dropdown({Name = "Knife", Flag = "HoodKnife", Content = SkinData.Knives, Default = SkinData.Knives[1], MaxVisibleItems = 5})
 
-local Settings = Window:CreateTab({Icon = "rbxassetid://15453349637"})
+-- Auto-apply on toggle and dropdown changes
+HoodCustomsEnable.Callback = function(enabled)
+    if enabled then applyHoodCustomsSkins() end
+end
+-- Override dropdown callbacks to also apply
+local function setupAutoApply(dropdown)
+    local oldCallback = dropdown.Callback
+    dropdown.Callback = function(val)
+        oldCallback(val)
+        if Flags["HoodCustomsEnable"]:Get() then applyHoodCustomsSkins() end
+    end
+end
+setupAutoApply(hDB)
+setupAutoApply(hRev)
+setupAutoApply(hTS)
+setupAutoApply(hBB)
+setupAutoApply(hKnife)
+
+-- Apply initially if enabled
+task.wait(0.5)
+if Flags["HoodCustomsEnable"]:Get() then applyHoodCustomsSkins() end
+
+-- ==================== SETTINGS TAB (Configs) ====================
+local Settings = Window:CreateTab({Icon = "rbxassetid://15453349637"}) -- Settings icon
+
+-- Original config and LUA sections
 local ConfigSection = Settings:Section({Name = "Configs", Fill = true})
 local LuaSection = Settings:Section({Name = "LUA", Side = "Right", Fill = true})
 
@@ -6335,6 +6380,16 @@ do
     LuaSection:Button({Name = "Refresh list"})
 end
 
+-- NEW: GUI Settings section with keybind to toggle GUI
+local GUISection = Settings:Section({Name = "GUI", Side = "Left", Fill = true})
+GUISection:Label({Message = "Toggle GUI Key"}):Keybind({
+    Default = Enum.KeyCode.Insert,
+    Flag = "GUIToggleKey",
+    Callback = function(key)
+        Library.UI.CloseBind = key
+    end
+})
+
 -- ==============================
 --  FUNCTIONAL CODE (Fly, Speedwalk, NoClip, Spinbot, Jump Power, Infinite Jump, World Effects)
 -- ==============================
@@ -6365,12 +6420,10 @@ Client.CharacterAdded:Connect(function(char)
     applyHeadlessToCurrent()
 end)
 
--- Set callback for Headless toggle
 Flags["HeadlessEnable"].Callback = function(enabled)
     applyHeadlessToCurrent()
 end
 
--- Apply initial state
 task.wait(0.5)
 applyHeadlessToCurrent()
 

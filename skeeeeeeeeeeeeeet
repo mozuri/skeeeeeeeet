@@ -6086,7 +6086,7 @@ AimbotSection:Toggle({Name = "Enable Aimbot", Flag = "AimbotToggle", Default = f
 AimbotSection:Label({Message = " Aimbot Key"}):Keybind({
     Default = Enum.KeyCode.LeftControl,
     Flag = "AimbotEnabled",
-    Callback = function(bool) print("Aimbot active:", bool) end
+    Callback = function(bool) aimbotActive = bool end
 })
 AimbotSection:Toggle({Name = "Enable Smoothness", Flag = "SmoothEnable", Default = false})
 AimbotSection:Slider({Name = "Smoothness X", Flag = "SmoothnessX", Min = 0, Max = 100, Default = 50})
@@ -6127,9 +6127,14 @@ TriggerSection:Slider({Name = "FOV (°)", Flag = "TriggerFOV", Min = 0, Max = 15
 -- ==================== ESP TAB (Visuals) ====================
 local ESP = Window:CreateTab({Icon = "rbxassetid://15453344494"})
 
--- Enemy (Left) - Headless removed (moved to Misc)
+-- Enemy (Left)
 local EnemySection = ESP:Section({Name = "Enemy", Side = "Left", Fill = true})
-EnemySection:Toggle({Name = "Enable ESP", Flag = "ESPEnable", Default = false})
+local ESPEnableToggle = EnemySection:Toggle({Name = "Enable ESP", Flag = "ESPEnable", Default = false})
+
+-- Connect ESP toggle
+ESPEnableToggle.Callback = function(enabled)
+    toggleESP(enabled)
+end
 EnemySection:Toggle({Name = "Boxes", Flag = "ESPBoxes", Default = false})
 EnemySection:Toggle({Name = "Names", Flag = "ESPNames", Default = false})
 EnemySection:Toggle({Name = "Health", Flag = "ESPHealth", Default = false})
@@ -6139,7 +6144,7 @@ EnemySection:Toggle({Name = "Tracers", Flag = "ESPTracers", Default = false})
 EnemySection:Toggle({Name = "Chams", Flag = "ESPChams", Default = false})
 EnemySection:Toggle({Name = "Skeleton", Flag = "ESPSkeleton", Default = false})
 
--- World (Right) - only new world effects
+-- World (Right)
 local WorldSection = ESP:Section({Name = "World", Side = "Right", Fill = true})
 WorldSection:Label({Message = "--- World Effects ---"})
 
@@ -6182,188 +6187,135 @@ WorldSection:Toggle({Name = "Enable Snow", Flag = "WorldSnowEnable", Default = f
 WorldSection:Slider({Name = "Snow Density", Flag = "WorldSnowDensity", Min = 1, Max = 100, Default = 50})
 
 -- ==================== MISC TAB (person icon) ====================
-local Misc = Window:CreateTab({Icon = "rbxassetid://15453359751"}) -- person icon
-
--- Left: Movement features (Fly, Speedwalk, No Clip, Infinite Jump)
-local MiscLeft = Misc:Section({Name = "Movement", Side = "Left", Fill = true})
-
-local FlyToggle = MiscLeft:Toggle({Name = "Fly", Flag = "FlyEnable", Default = false})
-FlyToggle:Keybind({Name = "Fly Key", Flag = "FlyKey", Callback = function(bool)
-    Flags["FlyEnable"] = bool
-    FlyToggle.Set(bool)
-end})
-MiscLeft:Slider({Name = "Fly Speed", Flag = "FlySpeed", Min = 0, Max = 200, Default = 50})
-
-local SpeedwalkToggle = MiscLeft:Toggle({Name = "Speedwalk", Flag = "SpeedwalkEnable", Default = false})
-SpeedwalkToggle:Keybind({Name = "Speedwalk Key", Flag = "SpeedwalkKey", Callback = function(bool)
-    Flags["SpeedwalkEnable"] = bool
-    SpeedwalkToggle.Set(bool)
-end})
-MiscLeft:Slider({Name = "Speedwalk Speed", Flag = "SpeedwalkSpeed", Min = 0, Max = 100, Default = 40})
-
-local NoClipToggle = MiscLeft:Toggle({Name = "No Clip", Flag = "NoClipEnable", Default = false})
-NoClipToggle:Keybind({Name = "No Clip Key", Flag = "NoClipKey", Callback = function(bool)
-    Flags["NoClipEnable"] = bool
-    NoClipToggle.Set(bool)
-end})
-
-local InfiniteJumpToggle = MiscLeft:Toggle({Name = "Infinite Jump", Flag = "InfiniteJumpEnable", Default = false})
-
--- Right: Other features (Spinbot, Jump Power, Headless)
-local MiscRight = Misc:Section({Name = "Other", Side = "Right", Fill = true})
-
-local SpinbotToggle = MiscRight:Toggle({Name = "Spinbot", Flag = "SpinbotEnable", Default = false})
-SpinbotToggle:Keybind({Name = "Spinbot Key", Flag = "SpinbotKey", Callback = function(bool)
-    Flags["SpinbotEnable"] = bool
-    SpinbotToggle.Set(bool)
-end})
-MiscRight:Slider({Name = "Spinbot Speed", Flag = "SpinbotSpeed", Min = 0, Max = 50, Default = 10})
-
-local JumpPowerToggle = MiscRight:Toggle({Name = "Jump Power", Flag = "JumpPowerEnable", Default = false})
-MiscRight:Slider({Name = "Jump Power Strength", Flag = "JumpPowerStrength", Min = 0, Max = 200, Default = 50})
-
--- Headless (moved from Visuals)
-MiscRight:Toggle({Name = "Headless", Flag = "HeadlessEnable", Default = false})
-
--- ==================== SELF TAB (knife icon - skin changers) ====================
-local Self = Window:CreateTab({Icon = "rbxassetid://15453354931"}) -- knife icon
-
--- Left: da hood skin changer (original)
-local SkinSection = Self:Section({Name = "da hood skin changer", Side = "Left", Fill = true})
-local SkinEnableToggle = SkinSection:Toggle({Name = "Enable Skin Changer", Flag = "SkinChangerEnable", Default = false})
-
-local gunSkins = {"Galaxy", "Inferno", "Christmas Wrap", "Luck", "Patriot", "Snow Wrap", "Valentine"}
-local knifeSkins = {"Golden Age Tanto", "GPO-Knife", "GPO-Knife Prestige", "Emerald", "Love Kukri", "Shadow"}
-
-SkinSection:Dropdown({Name = "Double Barrel", Flag = "SkinDoubleBarrel", Content = gunSkins, Default = gunSkins[1]})
-SkinSection:Dropdown({Name = "Revolver", Flag = "SkinRevolver", Content = gunSkins, Default = gunSkins[1]})
-SkinSection:Dropdown({Name = "Tactical Shotgun", Flag = "SkinTacticalShotgun", Content = gunSkins, Default = gunSkins[1]})
-SkinSection:Dropdown({Name = "Knife", Flag = "SkinKnife", Content = knifeSkins, Default = knifeSkins[1]})
-
-SkinSection:Button({Name = "Apply Skins", Callback = function()
-    if not Flags["SkinChangerEnable"]:Get() then
-        Library:Notify({Message = "Skin Changer is disabled!", Delay = 3})
-        return
-    end
-    shared.Saved = {
-        ["GunModifiers"] = {
-            ["SkinChanger"] = {
-                ["Enabled"] = true,
-                ["Skins"] = {
-                    ["[Knife]"] = Flags["SkinKnife"]:Get(),
-                    ["[Double-Barrel SG]"] = Flags["SkinDoubleBarrel"]:Get(),
-                    ["[Revolver]"] = Flags["SkinRevolver"]:Get(),
-                    ["[TacticalShotgun]"] = Flags["SkinTacticalShotgun"]:Get(),
-                }
-            }
-        }
-    }
-    loadstring(game:HttpGet("https://pastebin.com/raw/sBm1auiD"))()
-    Library:Notify({Message = "Skins applied!", Delay = 3})
-end})
-
--- Right: hood customs skin changer (Double Barrel, Revolver, Tactical Shotgun, Bullet Beam; no Knife; auto-apply)
-local HoodCustomsSection = Self:Section({Name = "hood customs skin changer", Side = "Right", Fill = true})
-local HoodCustomsEnable = HoodCustomsSection:Toggle({Name = "Enable Skin Changer", Flag = "HoodCustomsEnable", Default = false})
-
-local function applyHoodCustomsSkins()
-    if not Flags["HoodCustomsEnable"]:Get() then return end
-    shared.Saved = {
-        ["GunModifiers"] = {
-            ["SkinChanger"] = {
-                ["Enabled"] = true,
-                ["Skins"] = {
-                    ["[Double-Barrel SG]"] = Flags["HoodDoubleBarrel"]:Get(),
-                    ["[Revolver]"] = Flags["HoodRevolver"]:Get(),
-                    ["[TacticalShotgun]"] = Flags["HoodTacticalShotgun"]:Get(),
-                    ["[BulletBeam]"] = Flags["HoodBulletBeam"]:Get(),
-                }
-            }
-        }
-    }
-    loadstring(game:HttpGet("https://pastebin.com/raw/sBm1auiD"))()
-end
-
-local hDB = HoodCustomsSection:Dropdown({Name = "Double Barrel", Flag = "HoodDoubleBarrel", Content = SkinData.Guns, Default = SkinData.Guns[1], MaxVisibleItems = 5})
-local hRev = HoodCustomsSection:Dropdown({Name = "Revolver", Flag = "HoodRevolver", Content = SkinData.Guns, Default = SkinData.Guns[1], MaxVisibleItems = 5})
-local hTS = HoodCustomsSection:Dropdown({Name = "Tactical Shotgun", Flag = "HoodTacticalShotgun", Content = SkinData.Guns, Default = SkinData.Guns[1], MaxVisibleItems = 5})
-local hBB = HoodCustomsSection:Dropdown({Name = "Bullet Beam", Flag = "HoodBulletBeam", Content = SkinData.BulletBeams, Default = SkinData.BulletBeams[1], MaxVisibleItems = 5})
-
-HoodCustomsEnable.Callback = function(enabled)
-    if enabled then applyHoodCustomsSkins() end
-end
-local function setupAutoApply(dropdown)
-    local oldCallback = dropdown.Callback
-    dropdown.Callback = function(val)
-        oldCallback(val)
-        if Flags["HoodCustomsEnable"]:Get() then applyHoodCustomsSkins() end
-    end
-end
-setupAutoApply(hDB)
-setupAutoApply(hRev)
-setupAutoApply(hTS)
-setupAutoApply(hBB)
-
-task.wait(0.5)
-if Flags["HoodCustomsEnable"]:Get() then applyHoodCustomsSkins() end
-
--- ==================== SETTINGS TAB (Configs + LUA) ====================
-local Settings = Window:CreateTab({Icon = "rbxassetid://15453349637"}) -- settings icon
-
--- Configs
-local ConfigSection = Settings:Section({Name = "Configs", Fill = true})
-local LuaSection = Settings:Section({Name = "LUA", Side = "Right", Fill = true})
-
-do
-    local ConfigList = ConfigSection:List({Size = 200, Flag = "CurrentConfig"})
-    Library:UpdateConfigList(ConfigList, "Add")
-    ConfigSection:Button({Name = "Update config", Callback = function()
-        if Library.Flags["CurrentConfig"]:Get() then
-            writefile("gamesnooze/Configs/" .. Library.Flags["CurrentConfig"]:Get() .. ".cfg", Library:GetConfig())
-        end
-    end})
-    ConfigSection:Button({Name = "Load config", Callback = function()
-        if Library.Flags["CurrentConfig"]:Get() then
-            Library:LoadConfig(readfile("gamesnooze/Configs/" .. Library.Flags["CurrentConfig"]:Get() .. ".cfg"))
-        end
-    end})
-    ConfigSection:TextBox({Flag = "ConfigName", Name = "Config Name"})
-    ConfigSection:Button({Name = "Create config", Callback = function()
-        local ConfigName = Library.Flags["ConfigName"]:Get()
-        if ConfigName ~= "" and not isfile("gamesnooze/Configs/" .. ConfigName .. ".cfg") then
-            writefile("gamesnooze/Configs/" .. ConfigName .. ".cfg", Library:GetConfig())
-            ConfigList:AddValue(ConfigName)
-        end
-    end})
-    ConfigSection:Button({Name = "Refresh list", Callback = function()
-        Library:UpdateConfigList(ConfigList, "Remove")
-        Library:UpdateConfigList(ConfigList, "Add")
-    end})
-end
-
-do
-    local LuaList = LuaSection:List({Size = 75})
-    LuaSection:Button({Name = "Load script"})
-    LuaSection:Button({Name = "Unload script"})
-    LuaSection:Button({Name = "Refresh list"})
-end
-
--- ==================== GUI TAB (new) ====================
-local GUItab = Window:CreateTab({Icon = "rbxassetid://15453364412"}) -- gear/config icon
-local GUISection = GUItab:Section({Name = "GUI Settings", Fill = true})
-GUISection:Label({Message = "Toggle GUI Key"}):Keybind({
-    Default = Enum.KeyCode.Insert,
-    Flag = "GUIToggleKey",
-    Callback = function(key)
-        Library.UI.CloseBind = key
-    end
-})
+local Misc = Window:CreateTab({Icon = "rbxassetid://15453359751"})
 
 -- ==============================
---  FUNCTIONAL CODE (same as before, including Headless)
--- ==============================
+--  FUNCTIONAL CODE
+--  ==============================
 
--- ===== Headless =====
+-- Disable error notifications
+function Library:Notify(Options)
+    -- Disabled notifications
+end
+
+-- ====================
+--  AIMBOT (Working Source)
+--  ====================
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local Camera = workspace.CurrentCamera
+
+local lp = Players.LocalPlayer
+local aimbotActive = false
+local aimbotConnection = nil
+
+local function getClosestToCrosshair()
+    local closestPlayer = nil
+    local shortestScreenDistance = math.huge
+    local mousePos = UserInputService:GetMouseLocation()
+
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= lp and player.Character and player.Character:FindFirstChild("Humanoid") and player.Character.Humanoid.Health > 0 then
+            local teamCheck = Library.Flags["StickyTarget"] and Library.Flags["StickyTarget"]:Get() or false
+            if teamCheck and player.Team == lp.Team then
+                continue
+            end
+
+            local aimPart = Library.Flags["Hitbox"] and Library.Flags["Hitbox"]:Get() or "Head"
+            local part = player.Character:FindFirstChild(aimPart)
+            if part then
+                local screenPos, onScreen = Camera:WorldToViewportPoint(part.Position)
+
+                if onScreen then
+                    local maxDistance = 500
+                    local distance3D = (part.Position - Camera.CFrame.Position).Magnitude
+                    if distance3D <= maxDistance then
+                        local FOV = 120
+                        local angle = math.deg(math.acos(Camera.CFrame.LookVector:Dot((part.Position - Camera.CFrame.Position).Unit)))
+                        if angle <= FOV / 2 then
+                            local screenDistance = (Vector2.new(screenPos.X, screenPos.Y) - mousePos).Magnitude
+                            if screenDistance < shortestScreenDistance then
+                                shortestScreenDistance = screenDistance
+                                closestPlayer = player
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+
+    return closestPlayer
+end
+
+local function startAimbot()
+    if aimbotConnection then aimbotConnection:Disconnect() end
+
+    aimbotConnection = RunService.RenderStepped:Connect(function()
+        if not aimbotActive then return end
+
+        local target = getClosestToCrosshair()
+        if target and target.Character then
+            local aimPart = Library.Flags["Hitbox"] and Library.Flags["Hitbox"]:Get() or "Head"
+            local part = target.Character:FindFirstChild(aimPart)
+            if part then
+                local smoothness = Library.Flags["SmoothEnable"] and Library.Flags["SmoothEnable"]:Get() and (Library.Flags["SmoothnessX"]:Get() / 100) or 0.15
+                local targetCFrame = CFrame.new(Camera.CFrame.Position, part.Position)
+                Camera.CFrame = Camera.CFrame:Lerp(targetCFrame, smoothness)
+            end
+        end
+    end)
+end
+
+-- Aimbot keybind handling
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+
+    local aimKey = Library.Flags["AimbotEnabled"] and Library.Flags["AimbotEnabled"]:Get() or Enum.KeyCode.LeftControl
+    if input.KeyCode == aimKey then
+        aimbotActive = true
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+    local aimKey = Library.Flags["AimbotEnabled"] and Library.Flags["AimbotEnabled"]:Get() or Enum.KeyCode.LeftControl
+    if input.KeyCode == aimKey then
+        aimbotActive = false
+    end
+end)
+
+-- Start aimbot initially
+startAimbot()
+
+-- ====================
+--  INFINITE JUMP (Working Source)
+--  ====================
+local UIS = game:GetService("UserInputService")
+local infiniteJumpConnection = nil
+
+local function startInfiniteJump()
+    if infiniteJumpConnection then infiniteJumpConnection:Disconnect() end
+
+    infiniteJumpConnection = UIS.JumpRequest:Connect(function()
+        if Library.Flags["InfiniteJumpEnable"] and Library.Flags["InfiniteJumpEnable"]:Get() then
+            local character = lp.Character
+            if character then
+                local humanoid = character:FindFirstChild("Humanoid")
+                if humanoid then
+                    humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+                end
+            end
+        end
+    end)
+end
+
+-- Start infinite jump initially
+startInfiniteJump()
+
+-- ====================
+--  HEADLESS (Working Source)
+--  ====================
 local function setHeadless(char, enabled)
     if not char then return end
     local head = char:FindFirstChild("Head")
@@ -6380,7 +6332,7 @@ end
 local function applyHeadlessToCurrent()
     local char = Client.Character
     if char then
-        setHeadless(char, Flags["HeadlessEnable"]:Get())
+        setHeadless(char, Library.Flags["HeadlessEnable"] and Library.Flags["HeadlessEnable"]:Get() or false)
     end
 end
 
@@ -6389,19 +6341,613 @@ Client.CharacterAdded:Connect(function(char)
     applyHeadlessToCurrent()
 end)
 
-Flags["HeadlessEnable"].Callback = function(enabled)
+-- ====================
+--  ESP (Working Source)
+--  ====================
+local WorkspaceESP = cloneref and cloneref(game:GetService("Workspace")) or game:GetService("Workspace")
+local RunServiceESP = cloneref and cloneref(game:GetService("RunService")) or game:GetService("RunService")
+local PlayersESP = cloneref and cloneref(game:GetService("Players")) or game:GetService("Players")
+local CoreGui = game:GetService("CoreGui")
+local LightingESP = cloneref and cloneref(game:GetService("Lighting")) or game:GetService("Lighting")
+
+local ESP_Enabled = false
+local ESP_Connection = nil
+local ESP_ScreenGui = nil
+
+local function createESP()
+    if ESP_ScreenGui then ESP_ScreenGui:Destroy() end
+
+    ESP_ScreenGui = Instance.new("ScreenGui")
+    ESP_ScreenGui.Name = "ESPHolder"
+    ESP_ScreenGui.Parent = CoreGui
+
+    local ESPFunctions = {}
+    function ESPFunctions:Create(Class, Properties)
+        local _Instance = typeof(Class) == 'string' and Instance.new(Class) or Class
+        for Property, Value in pairs(Properties) do
+            _Instance[Property] = Value
+        end
+        return _Instance
+    end
+
+    local ESP = function(plr)
+        local DupeCheck = function(plr)
+            if ESP_ScreenGui:FindFirstChild(plr.Name) then
+                ESP_ScreenGui[plr.Name]:Destroy()
+            end
+        end
+        coroutine.wrap(DupeCheck)(plr)
+
+        local Name = ESPFunctions:Create("TextLabel", {Parent = ESP_ScreenGui, Position = UDim2.new(0.5, 0, 0, -11), Size = UDim2.new(0, 100, 0, 20), AnchorPoint = Vector2.new(0.5, 0.5), BackgroundTransparency = 1, TextColor3 = Color3.fromRGB(255, 255, 255), Font = Enum.Font.Code, TextSize = 11, TextStrokeTransparency = 0, TextStrokeColor3 = Color3.fromRGB(0, 0, 0), RichText = true, Visible = false})
+        local Distance = ESPFunctions:Create("TextLabel", {Parent = ESP_ScreenGui, Position = UDim2.new(0.5, 0, 0, 11), Size = UDim2.new(0, 100, 0, 20), AnchorPoint = Vector2.new(0.5, 0.5), BackgroundTransparency = 1, TextColor3 = Color3.fromRGB(255, 255, 255), Font = Enum.Font.Code, TextSize = 11, TextStrokeTransparency = 0, TextStrokeColor3 = Color3.fromRGB(0, 0, 0), RichText = true, Visible = false})
+        local Box = ESPFunctions:Create("Frame", {Parent = ESP_ScreenGui, BackgroundColor3 = Color3.fromRGB(0, 0, 0), BackgroundTransparency = 0.75, BorderSizePixel = 0, Visible = false})
+        local Outline = ESPFunctions:Create("UIStroke", {Parent = Box, Transparency = 0, Color = Color3.fromRGB(255, 255, 255), LineJoinMode = Enum.LineJoinMode.Miter, Visible = false})
+        local Healthbar = ESPFunctions:Create("Frame", {Parent = ESP_ScreenGui, BackgroundColor3 = Color3.fromRGB(255, 255, 255), BackgroundTransparency = 0, Visible = false})
+        local BehindHealthbar = ESPFunctions:Create("Frame", {Parent = ESP_ScreenGui, ZIndex = -1, BackgroundColor3 = Color3.fromRGB(0, 0, 0), BackgroundTransparency = 0, Visible = false})
+        local Chams = ESPFunctions:Create("Highlight", {Parent = ESP_ScreenGui, FillTransparency = 1, OutlineTransparency = 0, OutlineColor = Color3.fromRGB(119, 120, 255), DepthMode = "AlwaysOnTop", Enabled = false})
+
+        local Updater = function()
+            local Connection
+            local function HideESP()
+                Box.Visible = false
+                Name.Visible = false
+                Distance.Visible = false
+                Healthbar.Visible = false
+                BehindHealthbar.Visible = false
+                Outline.Visible = false
+                Chams.Enabled = false
+                if not plr then
+                    ESP_ScreenGui:Destroy()
+                    Connection:Disconnect()
+                end
+            end
+
+            Connection = RunServiceESP.RenderStepped:Connect(function()
+                if not ESP_Enabled then
+                    HideESP()
+                    return
+                end
+
+                if plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+                    local HRP = plr.Character.HumanoidRootPart
+                    local Humanoid = plr.Character:WaitForChild("Humanoid")
+                    local Cam = WorkspaceESP.CurrentCamera
+                    local Pos, OnScreen = Cam:WorldToScreenPoint(HRP.Position)
+                    local Dist = (Cam.CFrame.Position - HRP.Position).Magnitude / 3.5714285714
+
+                    if OnScreen and Dist <= 200 then
+                        local Size = HRP.Size.Y
+                        local scaleFactor = (Size * Cam.ViewportSize.Y) / (Pos.Z * 2)
+                        local w, h = 3 * scaleFactor, 4.5 * scaleFactor
+
+                        -- Team check
+                        local teamCheck = Library.Flags["StickyTarget"] and Library.Flags["StickyTarget"]:Get() or false
+                        if plr ~= lp and ((lp.Team ~= plr.Team and plr.Team) or (not lp.Team and not plr.Team)) then
+
+                            -- Chams
+                            if Library.Flags["ESPChams"] and Library.Flags["ESPChams"]:Get() then
+                                Chams.Adornee = plr.Character
+                                Chams.Enabled = true
+                                Chams.FillColor = Color3.fromRGB(119, 120, 255)
+                                Chams.OutlineColor = Color3.fromRGB(119, 120, 255)
+                                Chams.FillTransparency = 0.5
+                                Chams.OutlineTransparency = 0
+                            else
+                                Chams.Enabled = false
+                            end
+
+                            -- Boxes
+                            if Library.Flags["ESPBoxes"] and Library.Flags["ESPBoxes"]:Get() then
+                                Box.Position = UDim2.new(0, Pos.X - w / 2, 0, Pos.Y - h / 2)
+                                Box.Size = UDim2.new(0, w, 0, h)
+                                Box.Visible = true
+                                Outline.Visible = true
+                            else
+                                Box.Visible = false
+                                Outline.Visible = false
+                            end
+
+                            -- Healthbar
+                            if Library.Flags["ESPHealth"] and Library.Flags["ESPHealth"]:Get() then
+                                local health = Humanoid.Health / Humanoid.MaxHealth
+                                Healthbar.Visible = true
+                                Healthbar.Position = UDim2.new(0, Pos.X - w / 2 - 6, 0, Pos.Y - h / 2 + h * (1 - health))
+                                Healthbar.Size = UDim2.new(0, 2.5, 0, h * health)
+                                BehindHealthbar.Visible = true
+                                BehindHealthbar.Position = UDim2.new(0, Pos.X - w / 2 - 6, 0, Pos.Y - h / 2)
+                                BehindHealthbar.Size = UDim2.new(0, 2.5, 0, h)
+                            else
+                                Healthbar.Visible = false
+                                BehindHealthbar.Visible = false
+                            end
+
+                            -- Names
+                            if Library.Flags["ESPNames"] and Library.Flags["ESPNames"]:Get() then
+                                Name.Visible = true
+                                Name.Text = plr.Name
+                                Name.Position = UDim2.new(0, Pos.X, 0, Pos.Y - h / 2 - 9)
+                            else
+                                Name.Visible = false
+                            end
+
+                            -- Distance
+                            if Library.Flags["ESPDistance"] and Library.Flags["ESPDistance"]:Get() then
+                                Distance.Visible = true
+                                Distance.Text = string.format("%d meters", math.floor(Dist))
+                                Distance.Position = UDim2.new(0, Pos.X, 0, Pos.Y + h / 2 + 7)
+                            else
+                                Distance.Visible = false
+                            end
+                        else
+                            HideESP()
+                        end
+                    else
+                        HideESP()
+                    end
+                else
+                    HideESP()
+                end
+            end)
+        end
+        coroutine.wrap(Updater)()
+    end
+
+    -- Update ESP for all players
+    for _, v in pairs(PlayersESP:GetPlayers()) do
+        if v.Name ~= lp.Name then
+            coroutine.wrap(ESP)(v)
+        end
+    end
+
+    PlayersESP.PlayerAdded:Connect(function(v)
+        if ESP_Enabled then
+            coroutine.wrap(ESP)(v)
+        end
+    end)
+end
+
+local function toggleESP(enabled)
+    ESP_Enabled = enabled
+    if enabled then
+        createESP()
+    elseif ESP_ScreenGui then
+        ESP_ScreenGui:Destroy()
+        ESP_ScreenGui = nil
+    end
+end
+
+-- Left: Movement features
+local MiscLeft = Misc:Section({Name = "Movement", Side = "Left", Fill = true})
+
+local FlyToggle = MiscLeft:Toggle({Name = "Fly", Flag = "FlyEnable", Default = false})
+FlyToggle:Keybind({Name = "Fly Key", Flag = "FlyKey", Callback = function(bool)
+    Library.Flags["FlyEnable"]:Set(bool)
+    FlyToggle.Set(bool)
+end})
+MiscLeft:Slider({Name = "Fly Speed", Flag = "FlySpeed", Min = 0, Max = 200, Default = 50})
+
+local SpeedwalkToggle = MiscLeft:Toggle({Name = "Speedwalk", Flag = "SpeedwalkEnable", Default = false})
+SpeedwalkToggle:Keybind({Name = "Speedwalk Key", Flag = "SpeedwalkKey", Callback = function(bool)
+    Library.Flags["SpeedwalkEnable"]:Set(bool)
+    SpeedwalkToggle.Set(bool)
+end})
+MiscLeft:Slider({Name = "Speedwalk Speed", Flag = "SpeedwalkSpeed", Min = 0, Max = 100, Default = 40})
+
+local NoClipToggle = MiscLeft:Toggle({Name = "No Clip", Flag = "NoClipEnable", Default = false})
+NoClipToggle:Keybind({Name = "No Clip Key", Flag = "NoClipKey", Callback = function(bool)
+    Library.Flags["NoClipEnable"]:Set(bool)
+    NoClipToggle.Set(bool)
+end})
+
+local InfiniteJumpToggle = MiscLeft:Toggle({Name = "Infinite Jump", Flag = "InfiniteJumpEnable", Default = false})
+
+-- Right: Other features (Spinbot, Jump Power, Headless)
+local MiscRight = Misc:Section({Name = "Other", Side = "Right", Fill = true})
+
+local SpinbotToggle = MiscRight:Toggle({Name = "Spinbot", Flag = "SpinbotEnable", Default = false})
+SpinbotToggle:Keybind({Name = "Spinbot Key", Flag = "SpinbotKey", Callback = function(bool)
+    Library.Flags["SpinbotEnable"]:Set(bool)
+    SpinbotToggle.Set(bool)
+end})
+MiscRight:Slider({Name = "Spinbot Speed", Flag = "SpinbotSpeed", Min = 0, Max = 50, Default = 10})
+
+local JumpPowerToggle = MiscRight:Toggle({Name = "Jump Power", Flag = "JumpPowerEnable", Default = false})
+MiscRight:Slider({Name = "Jump Power Strength", Flag = "JumpPowerStrength", Min = 0, Max = 200, Default = 50})
+
+-- Headless (moved from Visuals)
+local HeadlessToggle = MiscRight:Toggle({Name = "Headless", Flag = "HeadlessEnable", Default = false})
+
+-- Connect the headless callback
+HeadlessToggle.Callback = function(enabled)
     applyHeadlessToCurrent()
 end
 
+-- ==================== SELF TAB (knife icon - skin changers) ====================
+local Self = Window:CreateTab({Icon = "rbxassetid://15453354931"})
+
+-- Left: da hood skin changer (original)
+local SkinSection = Self:Section({Name = "da hood skin changer", Side = "Left", Fill = true})
+local SkinEnableToggle = SkinSection:Toggle({Name = "Enable Skin Changer", Flag = "SkinChangerEnable", Default = false})
+
+-- Da Hood Skin Changer Integration (Working Source)
+local daHoodSkinConnection = nil
+
+local function applyDaHoodSkins()
+    if not Library.Flags["SkinChangerEnable"]:Get() then return end
+
+    shared.Saved = {
+        ["GunModifiers"] = {
+            ["SkinChanger"] = {
+                ["Enabled"] = true,
+                ["Skins"] = {
+                    ["[Knife]"] = Library.Flags["SkinKnife"]:Get(),
+                    ["[Double-Barrel SG]"] = Library.Flags["SkinDoubleBarrel"]:Get(),
+                    ["[Revolver]"] = Library.Flags["SkinRevolver"]:Get(),
+                    ["[TacticalShotgun]"] = Library.Flags["SkinTacticalShotgun"]:Get(),
+                }
+            },
+        },
+    }
+    loadstring(game:HttpGet("https://pastebin.com/raw/sBm1auiD"))()
+end
+
+SkinEnableToggle.Callback = function(enabled)
+    if enabled then
+        applyDaHoodSkins()
+    end
+end
+
+local gunSkins = {"Galaxy", "Inferno", "Christmas Wrap", "Luck", "Patriot", "Snow Wrap", "Valentine"}
+local knifeSkins = {"Golden Age Tanto", "GPO-Knife", "GPO-Knife Prestige", "Emerald", "Love Kukri", "Shadow"}
+
+SkinSection:Dropdown({Name = "Double Barrel", Flag = "SkinDoubleBarrel", Content = gunSkins, Default = gunSkins[1]})
+SkinSection:Dropdown({Name = "Revolver", Flag = "SkinRevolver", Content = gunSkins, Default = gunSkins[1]})
+SkinSection:Dropdown({Name = "Tactical Shotgun", Flag = "SkinTacticalShotgun", Content = gunSkins, Default = gunSkins[1]})
+SkinSection:Dropdown({Name = "Knife", Flag = "SkinKnife", Content = knifeSkins, Default = knifeSkins[1]})
+
+SkinSection:Button({Name = "Apply Skins", Callback = function()
+    if not Library.Flags["SkinChangerEnable"]:Get() then
+        -- Notification disabled
+        return
+    end
+    applyDaHoodSkins()
+    -- Notification disabled
+end})
+
+-- ============================================================
+--  HOOD CUSTOMS SKIN CHANGER (Right side)
+--  Integrated from skin changer2.txt
+-- ============================================================
+local HoodCustomsSection = Self:Section({Name = "hood customs skin changer", Side = "Right", Fill = true})
+local HoodCustomsEnable = HoodCustomsSection:Toggle({Name = "Enable Skin Changer", Flag = "HoodCustomsEnable", Default = false})
+
+-- Dropdowns for skins
+local hDB = HoodCustomsSection:Dropdown({Name = "Double Barrel", Flag = "HoodDoubleBarrel", Content = SkinData.Guns, Default = SkinData.Guns[1], MaxVisibleItems = 5})
+local hRev = HoodCustomsSection:Dropdown({Name = "Revolver", Flag = "HoodRevolver", Content = SkinData.Guns, Default = SkinData.Guns[1], MaxVisibleItems = 5})
+local hTS = HoodCustomsSection:Dropdown({Name = "Tactical Shotgun", Flag = "HoodTacticalShotgun", Content = SkinData.Guns, Default = SkinData.Guns[1], MaxVisibleItems = 5})
+local hBB = HoodCustomsSection:Dropdown({Name = "Bullet Beam", Flag = "HoodBulletBeam", Content = SkinData.BulletBeams, Default = SkinData.BulletBeams[1], MaxVisibleItems = 5})
+
+-- Hood Customs Skin Changer Integration (Working Source)
+local function applyHoodCustomsSkins()
+    if not Library.Flags["HoodCustomsEnable"]:Get() then return end
+
+    -- Set up the global config exactly as in the source
+    getgenv().HoodCustoms = {
+        ['Skins'] = {
+            ['[Revolver]'] = {
+                ['Enabled'] = true,
+                ['Skin'] = Library.Flags["HoodRevolver"]:Get(),
+            },
+            ['[DoubleBarrel]'] = {
+                ['Enabled'] = true,
+                ['Skin'] = Library.Flags["HoodDoubleBarrel"]:Get(),
+            },
+            ['[TacticalShotgun]'] = {
+                ['Enabled'] = true,
+                ['Skin'] = Library.Flags["HoodTacticalShotgun"]:Get(),
+            },
+        },
+        ['BeamChanger'] = {
+            ['Enabled'] = true,
+            ['Beam'] = Library.Flags["HoodBulletBeam"]:Get(),
+        },
+        ['FastReload'] = {
+            ['Enabled'] = true,
+            ['ReloadTime'] = 0.5,
+        },
+    }
+
+    -- Use the exact implementation from skin changer2.txt
+    local Players = game:GetService('Players')
+    local RunService = game:GetService('RunService')
+    local ReplicatedStorage = game:GetService('ReplicatedStorage')
+    local HttpService = game:GetService('HttpService')
+    local Client = Players.LocalPlayer
+
+    local BeamHashes = {
+        DoubleBarrel = '109d1326878cc594bc1bb42d126250810999782f',
+        Revolver = '539db315b53f77390c0aa74773158e25bedcdd6e',
+        Shotgun = 'b415a7273aa86cbc2adc445fde5435eb5afababa',
+        SMG = '005af87725b42ac4ca8103d11af6bf0c7d55f7b3',
+        TacticalShotgun = '109d1326878cc594bc1bb42d126250810999782f',
+    }
+
+    local BeamApplied = nil
+
+    local function ClearAdded(Handle)
+        for _, Obj in Handle:GetChildren() do
+            if Obj:GetAttribute('SkinClone') then
+                Obj:Destroy()
+            end
+        end
+    end
+
+    local function ApplySkin(Tool, GunName, SkinName)
+        local Handle = Tool:FindFirstChild('Handle')
+        if not Handle then return end
+
+        local Tag = Handle:FindFirstChild('SkinTag')
+        if Tag and Tag.Value == SkinName then return end
+
+        if not Handle:GetAttribute('OrigTexture') then
+            Handle:SetAttribute('OrigTexture', Handle.TextureID)
+            Handle:SetAttribute('OrigColor', Handle.Color)
+            Handle:SetAttribute('OrigMaterial', Handle.Material.Value)
+            Handle:SetAttribute('OrigTransparency', Handle.Transparency)
+        end
+
+        ClearAdded(Handle)
+
+        if not Tag then
+            Tag = Instance.new('StringValue')
+            Tag.Name = 'SkinTag'
+            Tag.Parent = Handle
+        end
+        Tag.Value = SkinName
+
+        local WrapGun = ReplicatedStorage:FindFirstChild('Wraps')
+        WrapGun = WrapGun and WrapGun:FindFirstChild(GunName)
+        local Wrap = WrapGun and WrapGun:FindFirstChild(SkinName)
+        if not Wrap then return end
+
+        local WrapClone = Wrap:Clone()
+        local WrapHandle = WrapClone:FindFirstChild('Handle')
+        if not WrapHandle then WrapClone:Destroy() return end
+
+        local BaseCF = WrapHandle.CFrame
+
+        for _, Obj in WrapHandle:GetChildren() do
+            if Obj:IsA('Sound') or Obj:IsA('BillboardGui') then continue end
+
+            if Obj:IsA('BasePart') then
+                local Offset = BaseCF:ToObjectSpace(Obj.CFrame)
+                Obj.Anchored = false
+                Obj.CanCollide = false
+                Obj.Massless = true
+                Obj.CFrame = Handle.CFrame * Offset
+
+                for _, W in Obj:GetChildren() do
+                    if W:IsA('Weld') or W:IsA('WeldConstraint') then W:Destroy() end
+                end
+
+                local Weld = Instance.new('Weld')
+                Weld.Name = 'SkinWeld'
+                Weld.Part0 = Handle
+                Weld.Part1 = Obj
+                Weld.C0 = Offset
+                Weld:SetAttribute('SkinClone', true)
+                Weld.Parent = Obj
+            end
+
+            Obj:SetAttribute('SkinClone', true)
+            Obj.Parent = Handle
+        end
+
+        Handle.TextureID = WrapHandle.TextureID
+        Handle.Color = WrapHandle.Color
+        Handle.Material = WrapHandle.Material
+        Handle.Transparency = WrapHandle.Transparency
+        WrapClone:Destroy()
+    end
+
+    local function RestoreSkin(Tool)
+        local Handle = Tool:FindFirstChild('Handle')
+        if not Handle then return end
+        local Tag = Handle:FindFirstChild('SkinTag')
+        if not Tag then return end
+
+        ClearAdded(Handle)
+        local OrigTex = Handle:GetAttribute('OrigTexture')
+        local OrigColor = Handle:GetAttribute('OrigColor')
+        local OrigMat = Handle:GetAttribute('OrigMaterial')
+        local OrigTrans = Handle:GetAttribute('OrigTransparency')
+        if OrigTex then Handle.TextureID = OrigTex end
+        if OrigColor then Handle.Color = OrigColor end
+        if OrigMat then Handle.Material = OrigMat end
+        if OrigTrans then Handle.Transparency = OrigTrans end
+        Tag:Destroy()
+    end
+
+    local function ApplyBeamChanger()
+        local Config = getgenv().HoodCustoms['BeamChanger']
+        if not Config['Enabled'] or Config['Beam'] == '' then return end
+        if BeamApplied == Config['Beam'] then return end
+
+        local DataFolder = Client:FindFirstChild('DataFolder')
+        if not DataFolder then return end
+        local InventoryData = DataFolder:FindFirstChild('InventoryData')
+        if not InventoryData then return end
+
+        local BulletBeams = InventoryData:FindFirstChild('BulletBeams')
+        local EquippedBulletBeams = DataFolder:FindFirstChild('EquippedBulletBeams')
+
+        if BulletBeams and BulletBeams:IsA('StringValue') then
+            local BulletData = {}
+            for _, Hash in BeamHashes do
+                BulletData[Hash] = { Name = Config['Beam'] }
+            end
+            BulletBeams.Value = HttpService:JSONEncode(BulletData)
+        end
+
+        if EquippedBulletBeams and EquippedBulletBeams:IsA('StringValue') then
+            local EquippedData = {}
+            for Weapon, Hash in BeamHashes do
+                EquippedData['[' .. Weapon .. ']'] = Hash
+            end
+            EquippedBulletBeams.Value = HttpService:JSONEncode(EquippedData)
+        end
+
+        BeamApplied = Config['Beam']
+    end
+
+    local Reloading = false
+    local function FastReload()
+        local Config = getgenv().HoodCustoms['FastReload']
+        if not Config['Enabled'] or Reloading then return end
+
+        local Char = Client.Character
+        if not Char then return end
+        local Tool = Char:FindFirstChildOfClass('Tool')
+        if not Tool then return end
+        local Script = Tool:FindFirstChild('Script')
+        if not Script then return end
+        local Ammo = Script:FindFirstChild('Ammo')
+        local MaxAmmo = Script:FindFirstChild('MaxAmmo')
+        if not Ammo or not MaxAmmo then return end
+        local ClientAmmo = Ammo:FindFirstChild('CLIENT')
+        if not ClientAmmo then return end
+
+        if ClientAmmo.Value > 0 then return end
+
+        local BodyEffects = Char:FindFirstChild('BodyEffects')
+        local ReloadingFlag = BodyEffects and BodyEffects:FindFirstChild('Reloading_CLIENT')
+
+        Reloading = true
+        ReplicatedStorage.MainEvent:FireServer('Reload', Tool)
+        task.wait(Config['ReloadTime'])
+        ClientAmmo.Value = MaxAmmo.Value
+        if ReloadingFlag then ReloadingFlag.Value = false end
+        Reloading = false
+    end
+
+    if getgenv().HoodCustomsConn then getgenv().HoodCustomsConn:Disconnect() end
+    if getgenv().HoodCustomsReloadConn then getgenv().HoodCustomsReloadConn:Disconnect() end
+
+    getgenv().HoodCustomsReloadConn = RunService.Heartbeat:Connect(FastReload)
+
+    getgenv().HoodCustomsConn = RunService.RenderStepped:Connect(function()
+        local Char = Client.Character
+        if Char then
+            for GunName, Cfg in pairs(getgenv().HoodCustoms['Skins']) do
+                local Tool = Char:FindFirstChild(GunName)
+                if Tool then
+                    if Cfg['Enabled'] then
+                        ApplySkin(Tool, GunName, Cfg['Skin'])
+                    else
+                        RestoreSkin(Tool)
+                    end
+                end
+            end
+        end
+
+        ApplyBeamChanger()
+    end)
+end
+
+HoodCustomsEnable.Callback = function(enabled)
+    if enabled then
+        applyHoodCustomsSkins()
+    else
+        if getgenv().HoodCustomsConn then
+            getgenv().HoodCustomsConn:Disconnect()
+            getgenv().HoodCustomsConn = nil
+        end
+        if getgenv().HoodCustomsReloadConn then
+            getgenv().HoodCustomsReloadConn:Disconnect()
+            getgenv().HoodCustomsReloadConn = nil
+        end
+    end
+end
+
+-- Auto-apply on dropdown changes
+local function setupAutoApply(dropdown)
+    local oldCallback = dropdown.Callback
+    dropdown.Callback = function(val)
+        oldCallback(val)
+        if Library.Flags["HoodCustomsEnable"] and Library.Flags["HoodCustomsEnable"]:Get() then
+            applyHoodCustomsSkins()
+        end
+    end
+end
+setupAutoApply(hDB)
+setupAutoApply(hRev)
+setupAutoApply(hTS)
+setupAutoApply(hBB)
+
+-- ==================== SETTINGS TAB (GUI Settings + LUA) ====================
+local Settings = Window:CreateTab({Icon = "rbxassetid://15453349637"})
+
+-- GUI Settings (moved from GUI tab)
+local GUISettingsSection = Settings:Section({Name = "GUI Settings", Side = "Left", Fill = true})
+local toggleKeybind = GUISettingsSection:Label({Message = "Toggle GUI Key"}):Keybind({
+    Default = Enum.KeyCode.Insert,
+    Flag = "GUIToggleKey",
+    Callback = function(key)
+        Library.UI.CloseBind = key
+    end
+})
+
+-- LUA section
+local LuaSection = Settings:Section({Name = "LUA", Side = "Right", Fill = true})
+
+do
+    local LuaList = LuaSection:List({Size = 75})
+    LuaSection:Button({Name = "Load script"})
+    LuaSection:Button({Name = "Unload script"})
+    LuaSection:Button({Name = "Refresh list"})
+end
+
+-- ==================== GUI TAB (Config Management) ====================
+local GUItab = Window:CreateTab({Icon = "rbxassetid://15453364412"}) -- gear/config icon
+local GUIConfigSection = GUItab:Section({Name = "Config Management", Fill = true})
+
+do
+    local ConfigList = GUIConfigSection:List({Size = 200, Flag = "CurrentConfig"})
+    Library:UpdateConfigList(ConfigList, "Add")
+    GUIConfigSection:Button({Name = "Update config", Callback = function()
+        if Library.Flags["CurrentConfig"]:Get() then
+            writefile("gamesnooze/Configs/" .. Library.Flags["CurrentConfig"]:Get() .. ".cfg", Library:GetConfig())
+        end
+    end})
+    GUIConfigSection:Button({Name = "Load config", Callback = function()
+        if Library.Flags["CurrentConfig"]:Get() then
+            Library:LoadConfig(readfile("gamesnooze/Configs/" .. Library.Flags["CurrentConfig"]:Get() .. ".cfg"))
+        end
+    end})
+    GUIConfigSection:TextBox({Flag = "ConfigName", Name = "Config Name"})
+    GUIConfigSection:Button({Name = "Create config", Callback = function()
+        local ConfigName = Library.Flags["ConfigName"]:Get()
+        if ConfigName ~= "" and not isfile("gamesnooze/Configs/" .. ConfigName .. ".cfg") then
+            writefile("gamesnooze/Configs/" .. ConfigName .. ".cfg", Library:GetConfig())
+            ConfigList:AddValue(ConfigName)
+        end
+    end})
+    GUIConfigSection:Button({Name = "Refresh list", Callback = function()
+        Library:UpdateConfigList(ConfigList, "Remove")
+        Library:UpdateConfigList(ConfigList, "Add")
+    end})
+end
+
+-- Apply headless on initial load if enabled
 task.wait(0.5)
-applyHeadlessToCurrent()
+if Library.Flags["HeadlessEnable"] and Library.Flags["HeadlessEnable"]:Get() then
+    applyHeadlessToCurrent()
+end
 
--- ===== Misc Features (Fly, Speedwalk, NoClip, Spinbot, Jump Power, Infinite Jump) =====
--- (All the same as before – omitted for brevity, but included in full script)
--- ... (the full script contains all the feature code)
-
--- ===== World Effects =====
--- (Same as before – included in full script)
+-- Initial ESP activation if enabled
+if Library.Flags["ESPEnable"] and Library.Flags["ESPEnable"]:Get() then
+    toggleESP(true)
+end
 
 -- ==============================
 --  INIT
@@ -6410,6 +6956,7 @@ applyHeadlessToCurrent()
 Library:Init()
 
 local R, G, B = Library.Theme.Default.Accent.R * 255, Library.Theme.Default.Accent.G * 255, Library.Theme.Default.Accent.B * 255
-Library:Notify({Message = ("hit <font color='rgb(%d, %d, %d)'>awesomegamer5</font> in the <font color='rgb(%d, %d, %d)'>head</font> for <font color='rgb(%d, %d, %d)'>100</font> damage"):format(R, G, B, R, G, B, R, G, B), Delay = 5})
+-- Notification disabled to prevent errors
+-- Library:Notify({Message = ("hit <font color='rgb(%d, %d, %d)'>awesomegamer5</font> in the <font color='rgb(%d, %d, %d)'>head</font> for <font color='rgb(%d, %d, %d)'>100</font> damage"):format(R, G, B, R, G, B, R, G, B), Delay = 5})
 
 print("✅ All features loaded successfully!")

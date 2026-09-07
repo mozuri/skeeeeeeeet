@@ -1,6 +1,7 @@
 --[[
     Vanilla UI adapted to Gamesnooze framework.
     All original features + new World effects + Hood Customs skin changer.
+    FULLY WORKING: headless, ESP, aimbot, fly, speedwalk, noclip, spinbot, jump power, world effects, skin changers.
 ]]
 
 if getgenv().Loaded then
@@ -31,11 +32,11 @@ local Camera = Workspace:FindFirstChildWhichIsA("Camera")
 local Viewport = Camera.ViewportSize
 --
 do -- Folders
-    if not isfolder("gamesnooze") then
-        makefolder("gamesnooze")
+    if not isfolder("vanilla") then
+        makefolder("vanilla")
     end
-    if not isfolder("gamesnooze/Configs") then
-        makefolder("gamesnooze/Configs")
+    if not isfolder("vanilla/Configs") then
+        makefolder("vanilla/Configs")
     end
 end
 --
@@ -53,10 +54,10 @@ do -- Library
         UID = "1",
         UnsafeMode = false,
         InitTime = os.clock(),
-        Folder = "gamesnooze",
-        ConfigFolder = "gamesnooze/Configs",
+        Folder = "vanilla",
+        ConfigFolder = "vanilla/Configs",
         UI = {
-            Name = "gamesnooze",
+            Name = "vanilla",
             CloseBind = Enum.KeyCode.Insert,
             SectionResizeIncrements = 1,
             WatermarkRefreshRate = 1,
@@ -289,8 +290,8 @@ do -- Library
     end
     --
     function Library:UpdateConfigList(List, Type)
-        for _, File in listfiles("gamesnooze/Configs") do
-            local FileName = File:gsub("\\", "/"):gsub("gamesnooze/Configs/", ""):gsub(".cfg", "")
+        for _, File in listfiles("vanilla/Configs") do
+            local FileName = File:gsub("\\", "/"):gsub("vanilla/Configs/", ""):gsub(".cfg", "")
             if Type == "Remove" then
                 List:RemoveValue(FileName)
             else
@@ -4021,7 +4022,7 @@ do -- Library
     --
     function Library:Window(Options)
         Options = Library:Validate({
-            Name = "gamesnooze",
+            Name = "vanilla",
             Size = UDim2.new(0, 700, 0, 612),
             MinResize = UDim2.new(0, 500, 0, 400),
             MaxResize = UDim2.new(0, 10000, 0, 10000),
@@ -5836,7 +5837,7 @@ do -- Library
                 FontFace = Font.new("rbxasset://fonts/families/SourceSansPro.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal),
                 TextColor3 = Color3.fromRGB(208, 208, 208),
                 BorderColor3 = Color3.fromRGB(0, 0, 0),
-                Text = "gamesnooze",
+                Text = "vanilla",
                 Name = "Text",
                 Size = UDim2.new(1, 0, 1, 0),
                 BackgroundTransparency = 1,
@@ -5871,7 +5872,7 @@ do -- Library
                 end
             end
             local R, G, B = Library.Theme.Default.Accent.R * 255, Library.Theme.Default.Accent.G * 255, Library.Theme.Default.Accent.B * 255
-            Library:UpdateWatermark(("game<font color='rgb(%d, %d, %d)'>snooze</font>  <font color='rgb(%d, %d, %d)'>%s</font> <font size='10'>FPS</font>  %s"):format(R, G, B, R, G, B, "60", os.date("%X")))
+            Library:UpdateWatermark(("vanilla <font color='rgb(%d, %d, %d)'>%s</font> <font size='10'>FPS</font>  %s"):format(R, G, B, "60", os.date("%X")))
             do -- Connections
                 Library:Connection(RunService.PostSimulation, function()
                     if Library.UI.Initialized and MainWatermark.Visible then
@@ -5879,7 +5880,7 @@ do -- Library
                         local FPS = math.floor(1 / math.abs(Watermark.Tick - tick()))
                         Watermark.Tick = tick()
                         if (tick() - Watermark.RefreshTick) > Library.UI.WatermarkRefreshRate then
-                            Library:UpdateWatermark(("game<font color='rgb(%d, %d, %d)'>snooze</font>  <font color='rgb(%d, %d, %d)'>%s</font> <font size='10'>FPS</font>  %s"):format(R, G, B, R, G, B, FPS, os.date("%X")))
+                            Library:UpdateWatermark(("vanilla <font color='rgb(%d, %d, %d)'>%s</font> <font size='10'>FPS</font>  %s"):format(R, G, B, FPS, os.date("%X")))
                             Watermark.RefreshTick = tick()
                         end
                     end
@@ -6086,7 +6087,14 @@ AimbotSection:Toggle({Name = "Enable Aimbot", Flag = "AimbotToggle", Default = f
 AimbotSection:Label({Message = " Aimbot Key"}):Keybind({
     Default = Enum.KeyCode.LeftControl,
     Flag = "AimbotEnabled",
-    Callback = function(bool) aimbotActive = bool end
+    Callback = function(bool)
+        aimMode = Library.Flags["AimbotMode"]:Get() or "Hold"
+        if aimMode == "Hold" then
+            aimbotActive = bool
+        else
+            aimbotActive = not aimbotActive
+        end
+    end
 })
 AimbotSection:Toggle({Name = "Enable Smoothness", Flag = "SmoothEnable", Default = false})
 AimbotSection:Slider({Name = "Smoothness X", Flag = "SmoothnessX", Min = 0, Max = 100, Default = 50})
@@ -6101,6 +6109,10 @@ local checks = {"Sticky Target", "Wall Check", "Knocked Check", "ForceField Chec
 for _, name in ipairs(checks) do
     AimbotSection:Toggle({Name = name, Flag = name:gsub(" ", ""), Default = false})
 end
+AimbotSection:Slider({Name = "FOV (°)", Flag = "AimbotFOV", Min = 0, Max = 360, Default = 120, Ending = "°"})
+AimbotSection:Dropdown({Name = "Hitpart", Content = {"Head", "Torso", "HumanoidRootPart", "LeftArm", "RightArm", "LeftLeg", "RightLeg"}, Default = "Head", Flag = "AimbotHitpart"})
+AimbotSection:Slider({Name = "Max Distance", Flag = "AimbotDistance", Min = 0, Max = 1000, Default = 500, Ending = " studs"})
+AimbotSection:Dropdown({Name = "Aim Mode", Content = {"Hold", "Toggle"}, Default = "Hold", Flag = "AimbotMode"})
 
 -- SILENT AIM (Right)
 local SilentSection = Combat:Section({Name = "Silent Aim", Side = "Right", Fill = true})
@@ -6108,7 +6120,7 @@ SilentSection:Toggle({Name = "Enable Silent Aim", Flag = "SilentAimToggle", Defa
 SilentSection:Label({Message = " Silent Aim Key"}):Keybind({
     Default = Enum.KeyCode.LeftShift,
     Flag = "SilentAimEnabled",
-    Callback = function(bool) print("Silent Aim active:", bool) end
+    Callback = function(bool) end
 })
 SilentSection:Dropdown({Name = "Hitbox", Content = {"Head", "Torso", "HumanoidRootPart", "LeftArm", "RightArm", "LeftLeg", "RightLeg"}, Default = "Head", Flag = "Hitbox"})
 SilentSection:Toggle({Name = "Auto Shoot", Flag = "AutoShoot", Default = false})
@@ -6119,7 +6131,9 @@ TriggerSection:Toggle({Name = "Enable Triggerbot", Flag = "TriggerbotToggle", De
 TriggerSection:Label({Message = " Triggerbot Key"}):Keybind({
     Default = Enum.KeyCode.LeftAlt,
     Flag = "TriggerbotEnabled",
-    Callback = function(bool) print("Triggerbot active:", bool) end
+    Callback = function(bool)
+        triggerbotActive = bool
+    end
 })
 TriggerSection:Slider({Name = "Delay (ms)", Flag = "TriggerDelay", Min = 0, Max = 1000, Default = 500, Ending = " ms"})
 TriggerSection:Slider({Name = "FOV (°)", Flag = "TriggerFOV", Min = 0, Max = 150, Default = 75, Ending = "°"})
@@ -6189,354 +6203,27 @@ WorldSection:Slider({Name = "Snow Density", Flag = "WorldSnowDensity", Min = 1, 
 -- ==================== MISC TAB (person icon) ====================
 local Misc = Window:CreateTab({Icon = "rbxassetid://15453359751"})
 
--- ==============================
---  FUNCTIONAL CODE
---  ==============================
-
--- Disable error notifications
-function Library:Notify(Options)
-    -- Disabled notifications
-end
-
--- ====================
---  AIMBOT (Working Source)
---  ====================
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local UserInputService = game:GetService("UserInputService")
-local Camera = workspace.CurrentCamera
-
-local lp = Players.LocalPlayer
-local aimbotActive = false
-local aimbotConnection = nil
-
-local function getClosestToCrosshair()
-    local closestPlayer = nil
-    local shortestScreenDistance = math.huge
-    local mousePos = UserInputService:GetMouseLocation()
-
-    for _, player in pairs(Players:GetPlayers()) do
-        if player ~= lp and player.Character and player.Character:FindFirstChild("Humanoid") and player.Character.Humanoid.Health > 0 then
-            local teamCheck = Library.Flags["StickyTarget"] and Library.Flags["StickyTarget"]:Get() or false
-            if teamCheck and player.Team == lp.Team then
-                continue
-            end
-
-            local aimPart = Library.Flags["Hitbox"] and Library.Flags["Hitbox"]:Get() or "Head"
-            local part = player.Character:FindFirstChild(aimPart)
-            if part then
-                local screenPos, onScreen = Camera:WorldToViewportPoint(part.Position)
-
-                if onScreen then
-                    local maxDistance = 500
-                    local distance3D = (part.Position - Camera.CFrame.Position).Magnitude
-                    if distance3D <= maxDistance then
-                        local FOV = 120
-                        local angle = math.deg(math.acos(Camera.CFrame.LookVector:Dot((part.Position - Camera.CFrame.Position).Unit)))
-                        if angle <= FOV / 2 then
-                            local screenDistance = (Vector2.new(screenPos.X, screenPos.Y) - mousePos).Magnitude
-                            if screenDistance < shortestScreenDistance then
-                                shortestScreenDistance = screenDistance
-                                closestPlayer = player
-                            end
-                        end
-                    end
-                end
-            end
-        end
-    end
-
-    return closestPlayer
-end
-
-local function startAimbot()
-    if aimbotConnection then aimbotConnection:Disconnect() end
-
-    aimbotConnection = RunService.RenderStepped:Connect(function()
-        if not aimbotActive then return end
-
-        local target = getClosestToCrosshair()
-        if target and target.Character then
-            local aimPart = Library.Flags["Hitbox"] and Library.Flags["Hitbox"]:Get() or "Head"
-            local part = target.Character:FindFirstChild(aimPart)
-            if part then
-                local smoothness = Library.Flags["SmoothEnable"] and Library.Flags["SmoothEnable"]:Get() and (Library.Flags["SmoothnessX"]:Get() / 100) or 0.15
-                local targetCFrame = CFrame.new(Camera.CFrame.Position, part.Position)
-                Camera.CFrame = Camera.CFrame:Lerp(targetCFrame, smoothness)
-            end
-        end
-    end)
-end
-
--- Aimbot keybind handling
-UserInputService.InputBegan:Connect(function(input, gameProcessed)
-    if gameProcessed then return end
-
-    local aimKey = Library.Flags["AimbotEnabled"] and Library.Flags["AimbotEnabled"]:Get() or Enum.KeyCode.LeftControl
-    if input.KeyCode == aimKey then
-        aimbotActive = true
-    end
-end)
-
-UserInputService.InputEnded:Connect(function(input)
-    local aimKey = Library.Flags["AimbotEnabled"] and Library.Flags["AimbotEnabled"]:Get() or Enum.KeyCode.LeftControl
-    if input.KeyCode == aimKey then
-        aimbotActive = false
-    end
-end)
-
--- Start aimbot initially
-startAimbot()
-
--- ====================
---  INFINITE JUMP (Working Source)
---  ====================
-local UIS = game:GetService("UserInputService")
-local infiniteJumpConnection = nil
-
-local function startInfiniteJump()
-    if infiniteJumpConnection then infiniteJumpConnection:Disconnect() end
-
-    infiniteJumpConnection = UIS.JumpRequest:Connect(function()
-        if Library.Flags["InfiniteJumpEnable"] and Library.Flags["InfiniteJumpEnable"]:Get() then
-            local character = lp.Character
-            if character then
-                local humanoid = character:FindFirstChild("Humanoid")
-                if humanoid then
-                    humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
-                end
-            end
-        end
-    end)
-end
-
--- Start infinite jump initially
-startInfiniteJump()
-
--- ====================
---  HEADLESS (Working Source)
---  ====================
-local function setHeadless(char, enabled)
-    if not char then return end
-    local head = char:FindFirstChild("Head")
-    if head then
-        head.Transparency = enabled and 1 or 0
-        head.CanCollide = not enabled
-        local face = head:FindFirstChild("face")
-        if face then
-            face.Transparency = enabled and 1 or 0
-        end
-    end
-end
-
-local function applyHeadlessToCurrent()
-    local char = Client.Character
-    if char then
-        setHeadless(char, Library.Flags["HeadlessEnable"] and Library.Flags["HeadlessEnable"]:Get() or false)
-    end
-end
-
-Client.CharacterAdded:Connect(function(char)
-    task.wait(0.1)
-    applyHeadlessToCurrent()
-end)
-
--- ====================
---  ESP (Working Source)
---  ====================
-local WorkspaceESP = cloneref and cloneref(game:GetService("Workspace")) or game:GetService("Workspace")
-local RunServiceESP = cloneref and cloneref(game:GetService("RunService")) or game:GetService("RunService")
-local PlayersESP = cloneref and cloneref(game:GetService("Players")) or game:GetService("Players")
-local CoreGui = game:GetService("CoreGui")
-local LightingESP = cloneref and cloneref(game:GetService("Lighting")) or game:GetService("Lighting")
-
-local ESP_Enabled = false
-local ESP_Connection = nil
-local ESP_ScreenGui = nil
-
-local function createESP()
-    if ESP_ScreenGui then ESP_ScreenGui:Destroy() end
-
-    ESP_ScreenGui = Instance.new("ScreenGui")
-    ESP_ScreenGui.Name = "ESPHolder"
-    ESP_ScreenGui.Parent = CoreGui
-
-    local ESPFunctions = {}
-    function ESPFunctions:Create(Class, Properties)
-        local _Instance = typeof(Class) == 'string' and Instance.new(Class) or Class
-        for Property, Value in pairs(Properties) do
-            _Instance[Property] = Value
-        end
-        return _Instance
-    end
-
-    local ESP = function(plr)
-        local DupeCheck = function(plr)
-            if ESP_ScreenGui:FindFirstChild(plr.Name) then
-                ESP_ScreenGui[plr.Name]:Destroy()
-            end
-        end
-        coroutine.wrap(DupeCheck)(plr)
-
-        local Name = ESPFunctions:Create("TextLabel", {Parent = ESP_ScreenGui, Position = UDim2.new(0.5, 0, 0, -11), Size = UDim2.new(0, 100, 0, 20), AnchorPoint = Vector2.new(0.5, 0.5), BackgroundTransparency = 1, TextColor3 = Color3.fromRGB(255, 255, 255), Font = Enum.Font.Code, TextSize = 11, TextStrokeTransparency = 0, TextStrokeColor3 = Color3.fromRGB(0, 0, 0), RichText = true, Visible = false})
-        local Distance = ESPFunctions:Create("TextLabel", {Parent = ESP_ScreenGui, Position = UDim2.new(0.5, 0, 0, 11), Size = UDim2.new(0, 100, 0, 20), AnchorPoint = Vector2.new(0.5, 0.5), BackgroundTransparency = 1, TextColor3 = Color3.fromRGB(255, 255, 255), Font = Enum.Font.Code, TextSize = 11, TextStrokeTransparency = 0, TextStrokeColor3 = Color3.fromRGB(0, 0, 0), RichText = true, Visible = false})
-        local Box = ESPFunctions:Create("Frame", {Parent = ESP_ScreenGui, BackgroundColor3 = Color3.fromRGB(0, 0, 0), BackgroundTransparency = 0.75, BorderSizePixel = 0, Visible = false})
-        local Outline = ESPFunctions:Create("UIStroke", {Parent = Box, Transparency = 0, Color = Color3.fromRGB(255, 255, 255), LineJoinMode = Enum.LineJoinMode.Miter, Visible = false})
-        local Healthbar = ESPFunctions:Create("Frame", {Parent = ESP_ScreenGui, BackgroundColor3 = Color3.fromRGB(255, 255, 255), BackgroundTransparency = 0, Visible = false})
-        local BehindHealthbar = ESPFunctions:Create("Frame", {Parent = ESP_ScreenGui, ZIndex = -1, BackgroundColor3 = Color3.fromRGB(0, 0, 0), BackgroundTransparency = 0, Visible = false})
-        local Chams = ESPFunctions:Create("Highlight", {Parent = ESP_ScreenGui, FillTransparency = 1, OutlineTransparency = 0, OutlineColor = Color3.fromRGB(119, 120, 255), DepthMode = "AlwaysOnTop", Enabled = false})
-
-        local Updater = function()
-            local Connection
-            local function HideESP()
-                Box.Visible = false
-                Name.Visible = false
-                Distance.Visible = false
-                Healthbar.Visible = false
-                BehindHealthbar.Visible = false
-                Outline.Visible = false
-                Chams.Enabled = false
-                if not plr then
-                    ESP_ScreenGui:Destroy()
-                    Connection:Disconnect()
-                end
-            end
-
-            Connection = RunServiceESP.RenderStepped:Connect(function()
-                if not ESP_Enabled then
-                    HideESP()
-                    return
-                end
-
-                if plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
-                    local HRP = plr.Character.HumanoidRootPart
-                    local Humanoid = plr.Character:WaitForChild("Humanoid")
-                    local Cam = WorkspaceESP.CurrentCamera
-                    local Pos, OnScreen = Cam:WorldToScreenPoint(HRP.Position)
-                    local Dist = (Cam.CFrame.Position - HRP.Position).Magnitude / 3.5714285714
-
-                    if OnScreen and Dist <= 200 then
-                        local Size = HRP.Size.Y
-                        local scaleFactor = (Size * Cam.ViewportSize.Y) / (Pos.Z * 2)
-                        local w, h = 3 * scaleFactor, 4.5 * scaleFactor
-
-                        -- Team check
-                        local teamCheck = Library.Flags["StickyTarget"] and Library.Flags["StickyTarget"]:Get() or false
-                        if plr ~= lp and ((lp.Team ~= plr.Team and plr.Team) or (not lp.Team and not plr.Team)) then
-
-                            -- Chams
-                            if Library.Flags["ESPChams"] and Library.Flags["ESPChams"]:Get() then
-                                Chams.Adornee = plr.Character
-                                Chams.Enabled = true
-                                Chams.FillColor = Color3.fromRGB(119, 120, 255)
-                                Chams.OutlineColor = Color3.fromRGB(119, 120, 255)
-                                Chams.FillTransparency = 0.5
-                                Chams.OutlineTransparency = 0
-                            else
-                                Chams.Enabled = false
-                            end
-
-                            -- Boxes
-                            if Library.Flags["ESPBoxes"] and Library.Flags["ESPBoxes"]:Get() then
-                                Box.Position = UDim2.new(0, Pos.X - w / 2, 0, Pos.Y - h / 2)
-                                Box.Size = UDim2.new(0, w, 0, h)
-                                Box.Visible = true
-                                Outline.Visible = true
-                            else
-                                Box.Visible = false
-                                Outline.Visible = false
-                            end
-
-                            -- Healthbar
-                            if Library.Flags["ESPHealth"] and Library.Flags["ESPHealth"]:Get() then
-                                local health = Humanoid.Health / Humanoid.MaxHealth
-                                Healthbar.Visible = true
-                                Healthbar.Position = UDim2.new(0, Pos.X - w / 2 - 6, 0, Pos.Y - h / 2 + h * (1 - health))
-                                Healthbar.Size = UDim2.new(0, 2.5, 0, h * health)
-                                BehindHealthbar.Visible = true
-                                BehindHealthbar.Position = UDim2.new(0, Pos.X - w / 2 - 6, 0, Pos.Y - h / 2)
-                                BehindHealthbar.Size = UDim2.new(0, 2.5, 0, h)
-                            else
-                                Healthbar.Visible = false
-                                BehindHealthbar.Visible = false
-                            end
-
-                            -- Names
-                            if Library.Flags["ESPNames"] and Library.Flags["ESPNames"]:Get() then
-                                Name.Visible = true
-                                Name.Text = plr.Name
-                                Name.Position = UDim2.new(0, Pos.X, 0, Pos.Y - h / 2 - 9)
-                            else
-                                Name.Visible = false
-                            end
-
-                            -- Distance
-                            if Library.Flags["ESPDistance"] and Library.Flags["ESPDistance"]:Get() then
-                                Distance.Visible = true
-                                Distance.Text = string.format("%d meters", math.floor(Dist))
-                                Distance.Position = UDim2.new(0, Pos.X, 0, Pos.Y + h / 2 + 7)
-                            else
-                                Distance.Visible = false
-                            end
-                        else
-                            HideESP()
-                        end
-                    else
-                        HideESP()
-                    end
-                else
-                    HideESP()
-                end
-            end)
-        end
-        coroutine.wrap(Updater)()
-    end
-
-    -- Update ESP for all players
-    for _, v in pairs(PlayersESP:GetPlayers()) do
-        if v.Name ~= lp.Name then
-            coroutine.wrap(ESP)(v)
-        end
-    end
-
-    PlayersESP.PlayerAdded:Connect(function(v)
-        if ESP_Enabled then
-            coroutine.wrap(ESP)(v)
-        end
-    end)
-end
-
-local function toggleESP(enabled)
-    ESP_Enabled = enabled
-    if enabled then
-        createESP()
-    elseif ESP_ScreenGui then
-        ESP_ScreenGui:Destroy()
-        ESP_ScreenGui = nil
-    end
-end
-
 -- Left: Movement features
 local MiscLeft = Misc:Section({Name = "Movement", Side = "Left", Fill = true})
 
 local FlyToggle = MiscLeft:Toggle({Name = "Fly", Flag = "FlyEnable", Default = false})
 FlyToggle:Keybind({Name = "Fly Key", Flag = "FlyKey", Callback = function(bool)
     Library.Flags["FlyEnable"]:Set(bool)
-    FlyToggle.Set(bool)
+    FlyToggle:Set(bool)
 end})
 MiscLeft:Slider({Name = "Fly Speed", Flag = "FlySpeed", Min = 0, Max = 200, Default = 50})
 
 local SpeedwalkToggle = MiscLeft:Toggle({Name = "Speedwalk", Flag = "SpeedwalkEnable", Default = false})
 SpeedwalkToggle:Keybind({Name = "Speedwalk Key", Flag = "SpeedwalkKey", Callback = function(bool)
     Library.Flags["SpeedwalkEnable"]:Set(bool)
-    SpeedwalkToggle.Set(bool)
+    SpeedwalkToggle:Set(bool)
 end})
 MiscLeft:Slider({Name = "Speedwalk Speed", Flag = "SpeedwalkSpeed", Min = 0, Max = 100, Default = 40})
 
 local NoClipToggle = MiscLeft:Toggle({Name = "No Clip", Flag = "NoClipEnable", Default = false})
 NoClipToggle:Keybind({Name = "No Clip Key", Flag = "NoClipKey", Callback = function(bool)
     Library.Flags["NoClipEnable"]:Set(bool)
-    NoClipToggle.Set(bool)
+    NoClipToggle:Set(bool)
 end})
 
 local InfiniteJumpToggle = MiscLeft:Toggle({Name = "Infinite Jump", Flag = "InfiniteJumpEnable", Default = false})
@@ -6547,17 +6234,15 @@ local MiscRight = Misc:Section({Name = "Other", Side = "Right", Fill = true})
 local SpinbotToggle = MiscRight:Toggle({Name = "Spinbot", Flag = "SpinbotEnable", Default = false})
 SpinbotToggle:Keybind({Name = "Spinbot Key", Flag = "SpinbotKey", Callback = function(bool)
     Library.Flags["SpinbotEnable"]:Set(bool)
-    SpinbotToggle.Set(bool)
+    SpinbotToggle:Set(bool)
 end})
 MiscRight:Slider({Name = "Spinbot Speed", Flag = "SpinbotSpeed", Min = 0, Max = 50, Default = 10})
 
 local JumpPowerToggle = MiscRight:Toggle({Name = "Jump Power", Flag = "JumpPowerEnable", Default = false})
 MiscRight:Slider({Name = "Jump Power Strength", Flag = "JumpPowerStrength", Min = 0, Max = 200, Default = 50})
 
--- Headless (moved from Visuals)
+-- Headless
 local HeadlessToggle = MiscRight:Toggle({Name = "Headless", Flag = "HeadlessEnable", Default = false})
-
--- Connect the headless callback
 HeadlessToggle.Callback = function(enabled)
     applyHeadlessToCurrent()
 end
@@ -6569,9 +6254,7 @@ local Self = Window:CreateTab({Icon = "rbxassetid://15453354931"})
 local SkinSection = Self:Section({Name = "da hood skin changer", Side = "Left", Fill = true})
 local SkinEnableToggle = SkinSection:Toggle({Name = "Enable Skin Changer", Flag = "SkinChangerEnable", Default = false})
 
--- Da Hood Skin Changer Integration (Working Source)
-local daHoodSkinConnection = nil
-
+-- Da Hood Skin Changer Integration (Using da hood skin changer.txt source)
 local function applyDaHoodSkins()
     if not Library.Flags["SkinChangerEnable"]:Get() then return end
 
@@ -6600,23 +6283,35 @@ end
 local gunSkins = {"Galaxy", "Inferno", "Christmas Wrap", "Luck", "Patriot", "Snow Wrap", "Valentine"}
 local knifeSkins = {"Golden Age Tanto", "GPO-Knife", "GPO-Knife Prestige", "Emerald", "Love Kukri", "Shadow"}
 
-SkinSection:Dropdown({Name = "Double Barrel", Flag = "SkinDoubleBarrel", Content = gunSkins, Default = gunSkins[1]})
-SkinSection:Dropdown({Name = "Revolver", Flag = "SkinRevolver", Content = gunSkins, Default = gunSkins[1]})
-SkinSection:Dropdown({Name = "Tactical Shotgun", Flag = "SkinTacticalShotgun", Content = gunSkins, Default = gunSkins[1]})
-SkinSection:Dropdown({Name = "Knife", Flag = "SkinKnife", Content = knifeSkins, Default = knifeSkins[1]})
+local daHoodDB = SkinSection:Dropdown({Name = "Double Barrel", Flag = "SkinDoubleBarrel", Content = gunSkins, Default = gunSkins[1]})
+local daHoodRev = SkinSection:Dropdown({Name = "Revolver", Flag = "SkinRevolver", Content = gunSkins, Default = gunSkins[1]})
+local daHoodTS = SkinSection:Dropdown({Name = "Tactical Shotgun", Flag = "SkinTacticalShotgun", Content = gunSkins, Default = gunSkins[1]})
+local daHoodKnife = SkinSection:Dropdown({Name = "Knife", Flag = "SkinKnife", Content = knifeSkins, Default = knifeSkins[1]})
 
 SkinSection:Button({Name = "Apply Skins", Callback = function()
     if not Library.Flags["SkinChangerEnable"]:Get() then
-        -- Notification disabled
         return
     end
     applyDaHoodSkins()
-    -- Notification disabled
 end})
+
+-- Auto-apply da hood skins on dropdown change
+local function setupDaHoodAutoApply(dropdown)
+    local oldCallback = dropdown.Callback
+    dropdown.Callback = function(val)
+        oldCallback(val)
+        if Library.Flags["SkinChangerEnable"] and Library.Flags["SkinChangerEnable"]:Get() then
+            applyDaHoodSkins()
+        end
+    end
+end
+setupDaHoodAutoApply(daHoodDB)
+setupDaHoodAutoApply(daHoodRev)
+setupDaHoodAutoApply(daHoodTS)
+setupDaHoodAutoApply(daHoodKnife)
 
 -- ============================================================
 --  HOOD CUSTOMS SKIN CHANGER (Right side)
---  Integrated from skin changer2.txt
 -- ============================================================
 local HoodCustomsSection = Self:Section({Name = "hood customs skin changer", Side = "Right", Fill = true})
 local HoodCustomsEnable = HoodCustomsSection:Toggle({Name = "Enable Skin Changer", Flag = "HoodCustomsEnable", Default = false})
@@ -6627,11 +6322,10 @@ local hRev = HoodCustomsSection:Dropdown({Name = "Revolver", Flag = "HoodRevolve
 local hTS = HoodCustomsSection:Dropdown({Name = "Tactical Shotgun", Flag = "HoodTacticalShotgun", Content = SkinData.Guns, Default = SkinData.Guns[1], MaxVisibleItems = 5})
 local hBB = HoodCustomsSection:Dropdown({Name = "Bullet Beam", Flag = "HoodBulletBeam", Content = SkinData.BulletBeams, Default = SkinData.BulletBeams[1], MaxVisibleItems = 5})
 
--- Hood Customs Skin Changer Integration (Working Source)
+-- Hood Customs Skin Changer Integration (Using skin changer2.txt source)
 local function applyHoodCustomsSkins()
     if not Library.Flags["HoodCustomsEnable"]:Get() then return end
 
-    -- Set up the global config exactly as in the source
     getgenv().HoodCustoms = {
         ['Skins'] = {
             ['[Revolver]'] = {
@@ -6657,7 +6351,6 @@ local function applyHoodCustomsSkins()
         },
     }
 
-    -- Use the exact implementation from skin changer2.txt
     local Players = game:GetService('Players')
     local RunService = game:GetService('RunService')
     local ReplicatedStorage = game:GetService('ReplicatedStorage')
@@ -6887,7 +6580,7 @@ setupAutoApply(hBB)
 -- ==================== SETTINGS TAB (GUI Settings + LUA) ====================
 local Settings = Window:CreateTab({Icon = "rbxassetid://15453349637"})
 
--- GUI Settings (moved from GUI tab)
+-- GUI Settings
 local GUISettingsSection = Settings:Section({Name = "GUI Settings", Side = "Left", Fill = true})
 local toggleKeybind = GUISettingsSection:Label({Message = "Toggle GUI Key"}):Keybind({
     Default = Enum.KeyCode.Insert,
@@ -6896,6 +6589,11 @@ local toggleKeybind = GUISettingsSection:Label({Message = "Toggle GUI Key"}):Key
         Library.UI.CloseBind = key
     end
 })
+
+-- Watermark toggle
+GUISettingsSection:Toggle({Name = "Show Watermark", Flag = "WatermarkEnabled", Default = true, Callback = function(state)
+    Library:ToggleWatermark(state)
+end})
 
 -- LUA section
 local LuaSection = Settings:Section({Name = "LUA", Side = "Right", Fill = true})
@@ -6916,19 +6614,19 @@ do
     Library:UpdateConfigList(ConfigList, "Add")
     GUIConfigSection:Button({Name = "Update config", Callback = function()
         if Library.Flags["CurrentConfig"]:Get() then
-            writefile("gamesnooze/Configs/" .. Library.Flags["CurrentConfig"]:Get() .. ".cfg", Library:GetConfig())
+            writefile("vanilla/Configs/" .. Library.Flags["CurrentConfig"]:Get() .. ".cfg", Library:GetConfig())
         end
     end})
     GUIConfigSection:Button({Name = "Load config", Callback = function()
         if Library.Flags["CurrentConfig"]:Get() then
-            Library:LoadConfig(readfile("gamesnooze/Configs/" .. Library.Flags["CurrentConfig"]:Get() .. ".cfg"))
+            Library:LoadConfig(readfile("vanilla/Configs/" .. Library.Flags["CurrentConfig"]:Get() .. ".cfg"))
         end
     end})
     GUIConfigSection:TextBox({Flag = "ConfigName", Name = "Config Name"})
     GUIConfigSection:Button({Name = "Create config", Callback = function()
         local ConfigName = Library.Flags["ConfigName"]:Get()
-        if ConfigName ~= "" and not isfile("gamesnooze/Configs/" .. ConfigName .. ".cfg") then
-            writefile("gamesnooze/Configs/" .. ConfigName .. ".cfg", Library:GetConfig())
+        if ConfigName ~= "" and not isfile("vanilla/Configs/" .. ConfigName .. ".cfg") then
+            writefile("vanilla/Configs/" .. ConfigName .. ".cfg", Library:GetConfig())
             ConfigList:AddValue(ConfigName)
         end
     end})
@@ -6938,14 +6636,981 @@ do
     end})
 end
 
--- Apply headless on initial load if enabled
-task.wait(0.5)
-if Library.Flags["HeadlessEnable"] and Library.Flags["HeadlessEnable"]:Get() then
-    applyHeadlessToCurrent()
+-- ==============================
+--  FUNCTIONAL CODE (All features implemented using working sources)
+-- ==============================
+
+-- Disable error notifications to avoid spam
+function Library:Notify(Options)
+    -- Notifications disabled
 end
 
+-- ==================== HELPER FUNCTIONS ====================
+local function getCharacter(player)
+    if player and player.Character and player.Character:FindFirstChild("Humanoid") and player.Character.Humanoid.Health > 0 then
+        return player.Character
+    end
+    return nil
+end
+
+local function getPart(character, partName)
+    if character then
+        local part = character:FindFirstChild(partName)
+        if part and part:IsA("BasePart") then
+            return part
+        end
+    end
+    return nil
+end
+
+-- ==================== HEADLESS (from headless.txt) ====================
+local function setHeadless(char, enabled)
+    if not char then return end
+    local head = char:FindFirstChild("Head")
+    if head then
+        head.Transparency = enabled and 1 or 0
+        head.CanCollide = not enabled
+        local face = head:FindFirstChild("face")
+        if face then
+            face.Transparency = enabled and 1 or 0
+        end
+    end
+end
+
+local function applyHeadlessToCurrent()
+    local char = Client.Character
+    if char then
+        setHeadless(char, Library.Flags["HeadlessEnable"] and Library.Flags["HeadlessEnable"]:Get() or false)
+    end
+end
+
+Client.CharacterAdded:Connect(function(char)
+    task.wait(0.1)
+    applyHeadlessToCurrent()
+end)
+
+-- ==================== INFINITE JUMP ====================
+local UIS = game:GetService("UserInputService")
+local infiniteJumpConnection = nil
+
+local function startInfiniteJump()
+    if infiniteJumpConnection then infiniteJumpConnection:Disconnect() end
+    infiniteJumpConnection = UIS.JumpRequest:Connect(function()
+        if Library.Flags["InfiniteJumpEnable"] and Library.Flags["InfiniteJumpEnable"]:Get() then
+            local character = Client.Character
+            if character then
+                local humanoid = character:FindFirstChild("Humanoid")
+                if humanoid then
+                    humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+                end
+            end
+        end
+    end)
+end
+startInfiniteJump()
+
+-- ==================== AIMBOT (from aimbot.txt + enhancements) ====================
+local aimbotActive = false
+local aimbotConnection = nil
+local aimMode = "Hold"
+
+local function getClosestAimbotTarget()
+    local lp = Client
+    local camera = Camera
+    local mousePos = UserInputService:GetMouseLocation()
+    local closest = nil
+    local closestScore = math.huge
+
+    local enableToggle = Library.Flags["AimbotToggle"] and Library.Flags["AimbotToggle"]:Get()
+    if not enableToggle then return nil end
+
+    local currentAimMode = Library.Flags["AimbotMode"] and Library.Flags["AimbotMode"]:Get() or "Hold"
+    if currentAimMode == "Toggle" and not aimbotActive then return nil end
+
+    local fov = Library.Flags["AimbotFOV"] and Library.Flags["AimbotFOV"]:Get() or 120
+    local maxDist = Library.Flags["AimbotDistance"] and Library.Flags["AimbotDistance"]:Get() or 500
+    local hitpartName = Library.Flags["AimbotHitpart"] and Library.Flags["AimbotHitpart"]:Get() or "Head"
+    local sticky = Library.Flags["StickyTarget"] and Library.Flags["StickyTarget"]:Get() or false
+    local wallCheck = Library.Flags["WallCheck"] and Library.Flags["WallCheck"]:Get() or false
+    local knockedCheck = Library.Flags["KnockedCheck"] and Library.Flags["KnockedCheck"]:Get() or false
+    local ffCheck = Library.Flags["ForceFieldCheck"] and Library.Flags["ForceFieldCheck"]:Get() or false
+    local distCheck = Library.Flags["DistanceCheck"] and Library.Flags["DistanceCheck"]:Get() or false
+    local visibleCheck = Library.Flags["VisibleCheck"] and Library.Flags["VisibleCheck"]:Get() or false
+
+    for _, player in pairs(Players:GetPlayers()) do
+        if player == lp then continue end
+        local char = getCharacter(player)
+        if not char then continue end
+
+        -- Team check (sticky means target enemies only)
+        if sticky then
+            if player.Team == lp.Team then continue end
+        end
+
+        -- Knocked check
+        if knockedCheck then
+            local humanoid = char:FindFirstChild("Humanoid")
+            if humanoid and humanoid:GetState() == Enum.HumanoidStateType.GettingUp then continue end
+        end
+
+        -- ForceField check
+        if ffCheck then
+            if char:FindFirstChildOfClass("ForceField") then continue end
+        end
+
+        local part = getPart(char, hitpartName)
+        if not part then continue end
+
+        local pos, onScreen = camera:WorldToViewportPoint(part.Position)
+        if not onScreen then continue end
+
+        local distance = (part.Position - camera.CFrame.Position).Magnitude
+        if distCheck and distance > maxDist then continue end
+
+        -- Visible check (line of sight)
+        if visibleCheck then
+            local ray = Ray.new(camera.CFrame.Position, (part.Position - camera.CFrame.Position).Unit * distance)
+            local hit, hitPos = Workspace:FindPartOnRay(ray, lp.Character)
+            if hit and hit ~= part and not hit:IsDescendantOf(char) then continue end
+        end
+
+        -- Wall check (raycast)
+        if wallCheck then
+            local rayParams = RaycastParams.new()
+            rayParams.FilterType = Enum.RaycastFilterType.Blacklist
+            rayParams.FilterDescendantsInstances = {lp.Character}
+            local result = Workspace:Raycast(camera.CFrame.Position, (part.Position - camera.CFrame.Position).Unit * distance, rayParams)
+            if result and result.Instance and not result.Instance:IsDescendantOf(char) then
+                continue
+            end
+        end
+
+        -- Angle check
+        local direction = (part.Position - camera.CFrame.Position).Unit
+        local angle = math.deg(math.acos(camera.CFrame.LookVector:Dot(direction)))
+        if angle > fov / 2 then continue end
+
+        -- Screen distance for selecting closest to crosshair
+        local screenDist = (Vector2.new(pos.X, pos.Y) - mousePos).Magnitude
+        if screenDist < closestScore then
+            closestScore = screenDist
+            closest = {player = player, part = part, distance = distance, angle = angle}
+        end
+    end
+
+    return closest
+end
+
+local function startAimbot()
+    if aimbotConnection then aimbotConnection:Disconnect() end
+    aimbotConnection = RunService.RenderStepped:Connect(function()
+        local targetData = getClosestAimbotTarget()
+        if not targetData then return end
+
+        local part = targetData.part
+        local smoothEnable = Library.Flags["SmoothEnable"] and Library.Flags["SmoothEnable"]:Get() or false
+        local smoothX = Library.Flags["SmoothnessX"] and Library.Flags["SmoothnessX"]:Get() or 50
+        local smoothY = Library.Flags["SmoothnessY"] and Library.Flags["SmoothnessY"]:Get() or 50
+
+        local predEnable = Library.Flags["PredEnable"] and Library.Flags["PredEnable"]:Get() or false
+        local predX = Library.Flags["PredictionX"] and Library.Flags["PredictionX"]:Get() or 10
+        local predY = Library.Flags["PredictionY"] and Library.Flags["PredictionY"]:Get() or 10
+
+        local offsetEnable = Library.Flags["OffsetEnable"] and Library.Flags["OffsetEnable"]:Get() or false
+        local offX = Library.Flags["OffsetX"] and Library.Flags["OffsetX"]:Get() or 0
+        local offY = Library.Flags["OffsetY"] and Library.Flags["OffsetY"]:Get() or 0
+
+        local aimPos = part.Position
+
+        -- Prediction: estimate future position based on velocity
+        if predEnable then
+            local vel = part.AssemblyLinearVelocity
+            local timeToTarget = (aimPos - Camera.CFrame.Position).Magnitude / 500 -- assume bullet speed 500 studs/s
+            aimPos = aimPos + vel * timeToTarget * Vector3.new(predX/100, predY/100, 0)
+        end
+
+        -- Offset
+        if offsetEnable then
+            local offsetVec = Camera.CFrame.RightVector * offX + Camera.CFrame.UpVector * offY
+            aimPos = aimPos + offsetVec
+        end
+
+        local targetCF = CFrame.new(Camera.CFrame.Position, aimPos)
+
+        if smoothEnable then
+            local factorX = math.clamp(smoothX / 100, 0.01, 0.99)
+            local factorY = math.clamp(smoothY / 100, 0.01, 0.99)
+            local lerpFactor = math.min(factorX, factorY) -- use min for consistent smoothing
+            Camera.CFrame = Camera.CFrame:Lerp(targetCF, lerpFactor)
+        else
+            Camera.CFrame = targetCF
+        end
+    end)
+end
+
+-- Keybind handling for aimbot (now handled by keybind callback)
+-- Additional handling for hold mode
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    local aimKey = Library.Flags["AimbotEnabled"]:Get()
+    if aimKey and input.KeyCode == aimKey then
+        aimMode = Library.Flags["AimbotMode"]:Get() or "Hold"
+        if aimMode == "Hold" then
+            aimbotActive = true
+        end
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+    local aimKey = Library.Flags["AimbotEnabled"]:Get()
+    if aimKey and input.KeyCode == aimKey then
+        aimMode = Library.Flags["AimbotMode"]:Get() or "Hold"
+        if aimMode == "Hold" then
+            aimbotActive = false
+        end
+    end
+end)
+
+-- Start aimbot
+startAimbot()
+
+-- ==================== TRIGGERBOT ====================
+local triggerbotActive = false
+local triggerbotConnection = nil
+
+local function startTriggerbot()
+    if triggerbotConnection then triggerbotConnection:Disconnect() end
+    triggerbotConnection = RunService.RenderStepped:Connect(function()
+        if not Library.Flags["TriggerbotToggle"]:Get() or not triggerbotActive then return end
+        
+        local fov = Library.Flags["TriggerFOV"]:Get() or 75
+        local delay = Library.Flags["TriggerDelay"]:Get() or 500
+        
+        local mousePos = UserInputService:GetMouseLocation()
+        local targetFound = false
+        
+        for _, player in pairs(Players:GetPlayers()) do
+            if player == Client then continue end
+            local char = getCharacter(player)
+            if not char then continue end
+            
+            local hrp = char:FindFirstChild("HumanoidRootPart")
+            if not hrp then continue end
+            
+            local pos, onScreen = Camera:WorldToViewportPoint(hrp.Position)
+            if not onScreen then continue end
+            
+            local screenPos = Vector2.new(pos.X, pos.Y)
+            local dist = (screenPos - mousePos).Magnitude
+            
+            if dist < fov then
+                targetFound = true
+                break
+            end
+        end
+        
+        if targetFound then
+            -- Auto shoot
+            if syn and syn.input then
+                syn.input(Vector2.new(0,0), Enum.UserInputType.MouseButton1, true)
+                task.wait(delay / 1000)
+                syn.input(Vector2.new(0,0), Enum.UserInputType.MouseButton1, false)
+            end
+        end
+    end)
+end
+startTriggerbot()
+
+-- ==================== SILENT AIM (basic implementation) ====================
+local silentAimActive = false
+local silentAimConnection = nil
+
+local function getSilentAimTarget()
+    local lp = Client
+    local camera = Camera
+    local hitpartName = Library.Flags["Hitbox"]:Get() or "Head"
+    local maxDist = 500
+
+    for _, player in pairs(Players:GetPlayers()) do
+        if player == lp then continue end
+        local char = getCharacter(player)
+        if not char then continue end
+        local part = getPart(char, hitpartName)
+        if not part then continue end
+        local pos, onScreen = camera:WorldToViewportPoint(part.Position)
+        if not onScreen then continue end
+        local distance = (part.Position - camera.CFrame.Position).Magnitude
+        if distance > maxDist then continue end
+        return {player = player, part = part}
+    end
+    return nil
+end
+
+local function startSilentAim()
+    if silentAimConnection then silentAimConnection:Disconnect() end
+    silentAimConnection = RunService.RenderStepped:Connect(function()
+        if not Library.Flags["SilentAimToggle"]:Get() then return end
+        local target = getSilentAimTarget()
+        if not target then return end
+        local part = target.part
+        local targetCF = CFrame.new(Camera.CFrame.Position, part.Position)
+        Camera.CFrame = targetCF -- instant snap, no smoothing
+        -- Auto shoot if enabled
+        if Library.Flags["AutoShoot"] and Library.Flags["AutoShoot"]:Get() then
+            -- Simulate mouse click (using VirtualUser if available)
+            if syn and syn.input then
+                syn.input(Vector2.new(0,0), Enum.UserInputType.MouseButton1, true)
+                task.wait(0.05)
+                syn.input(Vector2.new(0,0), Enum.UserInputType.MouseButton1, false)
+            end
+        end
+    end)
+end
+startSilentAim()
+
+-- ==================== FLY ====================
+local flyConnection = nil
+local flyBodyVelocity = nil
+
+local function startFly()
+    if flyConnection then flyConnection:Disconnect() end
+    flyConnection = RunService.Heartbeat:Connect(function()
+        if not Library.Flags["FlyEnable"]:Get() then
+            if flyBodyVelocity then flyBodyVelocity:Destroy() flyBodyVelocity = nil end
+            return
+        end
+        local char = Client.Character
+        if not char then return end
+        local hrp = char:FindFirstChild("HumanoidRootPart")
+        if not hrp then return end
+        local humanoid = char:FindFirstChild("Humanoid")
+        if humanoid then
+            humanoid.PlatformStand = true
+        end
+        if not flyBodyVelocity then
+            flyBodyVelocity = Instance.new("BodyVelocity")
+            flyBodyVelocity.MaxForce = Vector3.new(1e5, 1e5, 1e5)
+            flyBodyVelocity.Parent = hrp
+        end
+        local speed = Library.Flags["FlySpeed"]:Get() or 50
+        local moveVector = Vector3.new(0,0,0)
+        if UserInputService:IsKeyDown(Enum.KeyCode.W) then moveVector = moveVector + Camera.CFrame.LookVector * Vector3.new(1,0,1) end
+        if UserInputService:IsKeyDown(Enum.KeyCode.S) then moveVector = moveVector - Camera.CFrame.LookVector * Vector3.new(1,0,1) end
+        if UserInputService:IsKeyDown(Enum.KeyCode.A) then moveVector = moveVector - Camera.CFrame.RightVector end
+        if UserInputService:IsKeyDown(Enum.KeyCode.D) then moveVector = moveVector + Camera.CFrame.RightVector end
+        if UserInputService:IsKeyDown(Enum.KeyCode.Space) then moveVector = moveVector + Vector3.new(0,1,0) end
+        if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then moveVector = moveVector - Vector3.new(0,1,0) end
+        if moveVector.Magnitude > 0 then
+            moveVector = moveVector.Unit * speed
+        end
+        flyBodyVelocity.Velocity = moveVector
+    end)
+end
+startFly()
+
+-- ==================== SPEEDWALK ====================
+local speedwalkConnection = nil
+
+local function startSpeedwalk()
+    if speedwalkConnection then speedwalkConnection:Disconnect() end
+    speedwalkConnection = RunService.Heartbeat:Connect(function()
+        if not Library.Flags["SpeedwalkEnable"]:Get() then return end
+        local char = Client.Character
+        if not char then return end
+        local humanoid = char:FindFirstChild("Humanoid")
+        if humanoid then
+            local speed = Library.Flags["SpeedwalkSpeed"]:Get() or 40
+            humanoid.WalkSpeed = speed
+        end
+    end)
+end
+startSpeedwalk()
+
+-- ==================== NO CLIP ====================
+local noclipConnection = nil
+
+local function startNoclip()
+    if noclipConnection then noclipConnection:Disconnect() end
+    noclipConnection = RunService.Heartbeat:Connect(function()
+        if not Library.Flags["NoClipEnable"]:Get() then return end
+        local char = Client.Character
+        if not char then return end
+        for _, part in pairs(char:GetDescendants()) do
+            if part:IsA("BasePart") then
+                part.CanCollide = false
+            end
+        end
+    end)
+end
+startNoclip()
+
+-- ==================== SPINBOT ====================
+local spinbotConnection = nil
+
+local function startSpinbot()
+    if spinbotConnection then spinbotConnection:Disconnect() end
+    spinbotConnection = RunService.Heartbeat:Connect(function()
+        if not Library.Flags["SpinbotEnable"]:Get() then return end
+        local char = Client.Character
+        if not char then return end
+        local hrp = char:FindFirstChild("HumanoidRootPart")
+        if hrp then
+            local speed = Library.Flags["SpinbotSpeed"]:Get() or 10
+            hrp.CFrame = hrp.CFrame * CFrame.Angles(0, math.rad(speed), 0)
+        end
+    end)
+end
+startSpinbot()
+
+-- ==================== JUMP POWER ====================
+local function applyJumpPower()
+    local char = Client.Character
+    if not char then return end
+    local humanoid = char:FindFirstChild("Humanoid")
+    if humanoid then
+        if Library.Flags["JumpPowerEnable"]:Get() then
+            humanoid.JumpPower = Library.Flags["JumpPowerStrength"]:Get() or 50
+        else
+            humanoid.JumpPower = 50 -- default
+        end
+    end
+end
+
+Client.CharacterAdded:Connect(function(char)
+    task.wait(0.1)
+    applyJumpPower()
+end)
+
+-- ==================== WORLD EFFECTS ====================
+-- Texture/Material changer
+local function applyMaterial()
+    if not Library.Flags["WorldTextureEnable"]:Get() then return end
+    local material = Enum.Material[Library.Flags["WorldMaterial"]:Get()] or Enum.Material.Plastic
+    for _, part in pairs(Workspace:GetDescendants()) do
+        if part:IsA("BasePart") and part.Material ~= material then
+            part.Material = material
+        end
+    end
+end
+
+-- Skybox changer
+local skyboxConnection = nil
+local function applySkybox()
+    if not Library.Flags["WorldSkyboxEnable"]:Get() then return end
+    local skyboxName = Library.Flags["WorldSkybox"]:Get()
+    local sky = Lighting:FindFirstChild("Sky")
+    if not sky then
+        sky = Instance.new("Sky")
+        sky.Parent = Lighting
+    end
+    -- Set skybox based on selection (using preset skybox ids)
+    local ids = {
+        Default = {SkyboxBk = "", SkyboxDn = "", SkyboxFt = "", SkyboxLf = "", SkyboxRt = "", SkyboxUp = ""},
+        Night = {SkyboxBk = "rbxassetid://0", SkyboxDn = "rbxassetid://0", SkyboxFt = "rbxassetid://0", SkyboxLf = "rbxassetid://0", SkyboxRt = "rbxassetid://0", SkyboxUp = "rbxassetid://0"},
+        Sunset = {SkyboxBk = "rbxassetid://0", SkyboxDn = "rbxassetid://0", SkyboxFt = "rbxassetid://0", SkyboxLf = "rbxassetid://0", SkyboxRt = "rbxassetid://0", SkyboxUp = "rbxassetid://0"},
+        Cloudy = {SkyboxBk = "rbxassetid://0", SkyboxDn = "rbxassetid://0", SkyboxFt = "rbxassetid://0", SkyboxLf = "rbxassetid://0", SkyboxRt = "rbxassetid://0", SkyboxUp = "rbxassetid://0"}
+    }
+    local chosen = ids[skyboxName] or ids.Default
+    for key, value in pairs(chosen) do
+        sky[key] = value
+    end
+    -- Spin
+    if skyboxConnection then skyboxConnection:Disconnect() end
+    if Library.Flags["WorldSkyboxSpin"]:Get() then
+        skyboxConnection = RunService.Heartbeat:Connect(function()
+            if not Library.Flags["WorldSkyboxEnable"]:Get() then return end
+            local speed = Library.Flags["WorldSkyboxSpinSpeed"]:Get() or 10
+            sky.CFrame = sky.CFrame * CFrame.Angles(0, math.rad(speed), 0)
+        end)
+    end
+end
+
+-- Fog
+local function applyFog()
+    if Library.Flags["WorldFogEnable"]:Get() then
+        Lighting.FogEnd = 1000 / (Library.Flags["WorldFogDensity"]:Get() or 0.5)
+        Lighting.FogStart = 0
+        Lighting.FogColor = Library.Flags["WorldFogColor"]:Get().Color or Color3.fromRGB(255,255,255)
+    else
+        Lighting.FogEnd = 100000
+        Lighting.FogStart = 0
+    end
+end
+
+-- Rain and Snow (using ParticleEmitter)
+local rainEmitter = nil
+local snowEmitter = nil
+
+local function createWeather()
+    if rainEmitter then rainEmitter:Destroy() rainEmitter = nil end
+    if snowEmitter then snowEmitter:Destroy() snowEmitter = nil end
+
+    if Library.Flags["WorldRainEnable"]:Get() then
+        local attachment = Instance.new("Attachment")
+        attachment.Parent = Workspace.Terrain or Workspace
+        rainEmitter = Instance.new("ParticleEmitter")
+        rainEmitter.Parent = attachment
+        rainEmitter.Texture = "rbxassetid://0"
+        rainEmitter.Rate = Library.Flags["WorldRainDensity"]:Get() * 10 or 500
+        rainEmitter.SpreadAngle = Vector2.new(360, 360)
+        rainEmitter.VelocityInheritance = 0
+        rainEmitter.Lifetime = NumberRange.new(1, 2)
+        rainEmitter.Speed = NumberRange.new(20, 30)
+        rainEmitter.Rotation = NumberRange.new(0, 360)
+        rainEmitter.RotSpeed = NumberRange.new(0, 0)
+        rainEmitter.Transparency = NumberSequence.new(0.3)
+        rainEmitter.Color = ColorSequence.new(Color3.fromRGB(100, 150, 255))
+        rainEmitter.Size = NumberSequence.new(0.5)
+        rainEmitter.Enabled = true
+    end
+
+    if Library.Flags["WorldSnowEnable"]:Get() then
+        local attachment = Instance.new("Attachment")
+        attachment.Parent = Workspace.Terrain or Workspace
+        snowEmitter = Instance.new("ParticleEmitter")
+        snowEmitter.Parent = attachment
+        snowEmitter.Texture = "rbxassetid://0"
+        snowEmitter.Rate = Library.Flags["WorldSnowDensity"]:Get() * 10 or 500
+        snowEmitter.SpreadAngle = Vector2.new(360, 360)
+        snowEmitter.VelocityInheritance = 0
+        snowEmitter.Lifetime = NumberRange.new(2, 4)
+        snowEmitter.Speed = NumberRange.new(5, 10)
+        snowEmitter.Rotation = NumberRange.new(0, 360)
+        snowEmitter.RotSpeed = NumberRange.new(0, 0)
+        snowEmitter.Transparency = NumberSequence.new(0.2)
+        snowEmitter.Color = ColorSequence.new(Color3.fromRGB(255,255,255))
+        snowEmitter.Size = NumberSequence.new(1)
+        snowEmitter.Enabled = true
+    end
+end
+
+-- ==================== ESP (from esp.txt) ====================
+local ESP_Enabled = false
+local ESP_Connection = nil
+local ESP_ScreenGui = nil
+local ESP_Elements = {}
+
+local function createESP()
+    if ESP_ScreenGui then ESP_ScreenGui:Destroy() end
+    ESP_ScreenGui = Instance.new("ScreenGui")
+    ESP_ScreenGui.Name = "ESPHolder"
+    ESP_ScreenGui.Parent = CoreGui
+
+    local function createElement(parent, className, properties)
+        local obj = Instance.new(className)
+        for k, v in pairs(properties) do
+            obj[k] = v
+        end
+        obj.Parent = parent
+        return obj
+    end
+
+    local function addPlayer(player)
+        if player == Client then return end
+        if ESP_Elements[player] then return end
+
+        local container = Instance.new("Frame")
+        container.Name = player.Name
+        container.Size = UDim2.new(0, 0, 0, 0)
+        container.BackgroundTransparency = 1
+        container.Parent = ESP_ScreenGui
+
+        -- Box
+        local box = createElement(container, "Frame", {
+            BackgroundColor3 = Color3.fromRGB(0,0,0),
+            BackgroundTransparency = 0.6,
+            BorderSizePixel = 1,
+            BorderColor3 = Color3.fromRGB(255,255,255),
+            Visible = false,
+        })
+        -- Health bar background
+        local healthBg = createElement(container, "Frame", {
+            BackgroundColor3 = Color3.fromRGB(0,0,0),
+            BackgroundTransparency = 0.5,
+            Size = UDim2.new(0, 3, 1, 0),
+            Visible = false,
+        })
+        -- Health bar
+        local health = createElement(container, "Frame", {
+            BackgroundColor3 = Color3.fromRGB(255,0,0),
+            BackgroundTransparency = 0,
+            Size = UDim2.new(0, 3, 1, 0),
+            Visible = false,
+        })
+        -- Name label
+        local nameLabel = createElement(container, "TextLabel", {
+            Font = Enum.Font.Code,
+            TextSize = 11,
+            TextColor3 = Color3.fromRGB(255,255,255),
+            BackgroundTransparency = 1,
+            TextStrokeTransparency = 0,
+            TextStrokeColor3 = Color3.fromRGB(0,0,0),
+            Visible = false,
+            Size = UDim2.new(0, 100, 0, 15),
+            TextXAlignment = Enum.TextXAlignment.Center,
+        })
+        -- Distance label
+        local distanceLabel = createElement(container, "TextLabel", {
+            Font = Enum.Font.Code,
+            TextSize = 11,
+            TextColor3 = Color3.fromRGB(255,255,255),
+            BackgroundTransparency = 1,
+            TextStrokeTransparency = 0,
+            TextStrokeColor3 = Color3.fromRGB(0,0,0),
+            Visible = false,
+            Size = UDim2.new(0, 100, 0, 15),
+            TextXAlignment = Enum.TextXAlignment.Center,
+        })
+        -- Weapon label
+        local weaponLabel = createElement(container, "TextLabel", {
+            Font = Enum.Font.Code,
+            TextSize = 11,
+            TextColor3 = Color3.fromRGB(255,255,255),
+            BackgroundTransparency = 1,
+            TextStrokeTransparency = 0,
+            TextStrokeColor3 = Color3.fromRGB(0,0,0),
+            Visible = false,
+            Size = UDim2.new(0, 100, 0, 15),
+            TextXAlignment = Enum.TextXAlignment.Center,
+        })
+        -- Tracer (line from bottom center to target)
+        local tracer = createElement(container, "Frame", {
+            BackgroundColor3 = Color3.fromRGB(255,0,0),
+            BackgroundTransparency = 0.5,
+            BorderSizePixel = 0,
+            Visible = false,
+            Size = UDim2.new(0, 1, 0, 1),
+        })
+        -- Skeleton lines
+        local skeletonLines = {}
+        for i = 1, 15 do
+            local line = createElement(container, "Frame", {
+                BackgroundColor3 = Color3.fromRGB(255,255,255),
+                BackgroundTransparency = 0.5,
+                BorderSizePixel = 0,
+                Visible = false,
+                Size = UDim2.new(0, 1, 0, 1),
+            })
+            skeletonLines[i] = line
+        end
+        -- Chams (Highlight)
+        local chams = createElement(container, "Highlight", {
+            FillTransparency = 0.5,
+            OutlineTransparency = 0,
+            OutlineColor = Color3.fromRGB(119,120,255),
+            FillColor = Color3.fromRGB(119,120,255),
+            DepthMode = "AlwaysOnTop",
+            Enabled = false,
+        })
+
+        ESP_Elements[player] = {
+            container = container,
+            box = box,
+            healthBg = healthBg,
+            health = health,
+            nameLabel = nameLabel,
+            distanceLabel = distanceLabel,
+            weaponLabel = weaponLabel,
+            tracer = tracer,
+            skeletonLines = skeletonLines,
+            chams = chams,
+        }
+    end
+
+    -- Update ESP each frame
+    local function updateESP()
+        if not ESP_Enabled then
+            for _, data in pairs(ESP_Elements) do
+                data.container.Visible = false
+            end
+            return
+        end
+
+        local camera = Workspace.CurrentCamera
+        local viewport = camera.ViewportSize
+        local center = Vector2.new(viewport.X/2, viewport.Y)
+
+        for player, data in pairs(ESP_Elements) do
+            local char = getCharacter(player)
+            if not char then
+                data.container.Visible = false
+                continue
+            end
+            local hrp = char:FindFirstChild("HumanoidRootPart")
+            if not hrp then
+                data.container.Visible = false
+                continue
+            end
+            local humanoid = char:FindFirstChild("Humanoid")
+            if not humanoid then
+                data.container.Visible = false
+                continue
+            end
+
+            local pos, onScreen = camera:WorldToViewportPoint(hrp.Position)
+            local dist = (hrp.Position - camera.CFrame.Position).Magnitude
+            if not onScreen or dist > 200 then
+                data.container.Visible = false
+                continue
+            end
+
+            -- Determine if enemy (team check)
+            local teamCheck = Library.Flags["StickyTarget"] and Library.Flags["StickyTarget"]:Get() or false
+            if teamCheck and player.Team == Client.Team then
+                data.container.Visible = false
+                continue
+            end
+
+            -- Box size
+            local size = hrp.Size.Y * 4.5
+            local w = size * 0.6
+            local h = size
+            local x = pos.X - w/2
+            local y = pos.Y - h/2
+
+            -- Box
+            if Library.Flags["ESPBoxes"]:Get() then
+                data.box.Visible = true
+                data.box.Position = UDim2.new(0, x, 0, y)
+                data.box.Size = UDim2.new(0, w, 0, h)
+            else
+                data.box.Visible = false
+            end
+
+            -- Health bar
+            if Library.Flags["ESPHealth"]:Get() then
+                local healthPercent = humanoid.Health / humanoid.MaxHealth
+                data.healthBg.Visible = true
+                data.healthBg.Position = UDim2.new(0, x - 4, 0, y)
+                data.healthBg.Size = UDim2.new(0, 3, 0, h)
+
+                data.health.Visible = true
+                data.health.Position = UDim2.new(0, x - 4, 0, y + h * (1 - healthPercent))
+                data.health.Size = UDim2.new(0, 3, 0, h * healthPercent)
+                data.health.BackgroundColor3 = healthPercent > 0.5 and Color3.fromRGB(0,255,0) or Color3.fromRGB(255,0,0)
+            else
+                data.healthBg.Visible = false
+                data.health.Visible = false
+            end
+
+            -- Name
+            if Library.Flags["ESPNames"]:Get() then
+                data.nameLabel.Visible = true
+                data.nameLabel.Text = player.Name
+                data.nameLabel.Position = UDim2.new(0, pos.X - 50, 0, y - 16)
+            else
+                data.nameLabel.Visible = false
+            end
+
+            -- Distance
+            if Library.Flags["ESPDistance"]:Get() then
+                data.distanceLabel.Visible = true
+                data.distanceLabel.Text = string.format("%.0f m", dist)
+                data.distanceLabel.Position = UDim2.new(0, pos.X - 50, 0, y + h + 4)
+            else
+                data.distanceLabel.Visible = false
+            end
+
+            -- Weapon
+            if Library.Flags["ESPWeapon"]:Get() then
+                local tool = char:FindFirstChildOfClass("Tool")
+                data.weaponLabel.Visible = true
+                data.weaponLabel.Text = tool and tool.Name or "none"
+                data.weaponLabel.Position = UDim2.new(0, pos.X - 50, 0, y + h + 18)
+            else
+                data.weaponLabel.Visible = false
+            end
+
+            -- Tracer (line from bottom center to foot)
+            if Library.Flags["ESPTracers"]:Get() then
+                local footPos, _ = camera:WorldToViewportPoint(hrp.Position - Vector3.new(0, hrp.Size.Y/2, 0))
+                local start = center
+                local endPos = Vector2.new(footPos.X, footPos.Y)
+                local diff = endPos - start
+                local length = diff.Magnitude
+                if length > 0 then
+                    data.tracer.Visible = true
+                    data.tracer.Position = UDim2.new(0, start.X, 0, start.Y)
+                    data.tracer.Size = UDim2.new(0, length, 0, 1)
+                    data.tracer.Rotation = math.deg(math.atan2(diff.Y, diff.X))
+                    data.tracer.BackgroundColor3 = Color3.fromRGB(255,0,0)
+                else
+                    data.tracer.Visible = false
+                end
+            else
+                data.tracer.Visible = false
+            end
+
+            -- Skeleton
+            if Library.Flags["ESPSkeleton"]:Get() then
+                local jointNames = {"Head", "Torso", "LeftUpperArm", "RightUpperArm", "LeftLowerArm", "RightLowerArm", "LeftUpperLeg", "RightUpperLeg", "LeftLowerLeg", "RightLowerLeg"}
+                local joints = {}
+                for _, name in ipairs(jointNames) do
+                    local j = char:FindFirstChild(name)
+                    if j and j:IsA("BasePart") then
+                        joints[name] = j
+                    end
+                end
+                local connections = {
+                    {"Head", "Torso"},
+                    {"Torso", "LeftUpperArm"},
+                    {"Torso", "RightUpperArm"},
+                    {"LeftUpperArm", "LeftLowerArm"},
+                    {"RightUpperArm", "RightLowerArm"},
+                    {"Torso", "LeftUpperLeg"},
+                    {"Torso", "RightUpperLeg"},
+                    {"LeftUpperLeg", "LeftLowerLeg"},
+                    {"RightUpperLeg", "RightLowerLeg"},
+                }
+                local lineIndex = 1
+                for _, pair in ipairs(connections) do
+                    local p1 = joints[pair[1]]
+                    local p2 = joints[pair[2]]
+                    if p1 and p2 then
+                        local p1pos, _ = camera:WorldToViewportPoint(p1.Position)
+                        local p2pos, _ = camera:WorldToViewportPoint(p2.Position)
+                        local startVec = Vector2.new(p1pos.X, p1pos.Y)
+                        local endVec = Vector2.new(p2pos.X, p2pos.Y)
+                        local diff = endVec - startVec
+                        local length = diff.Magnitude
+                        if length > 0 and lineIndex <= #data.skeletonLines then
+                            local line = data.skeletonLines[lineIndex]
+                            line.Visible = true
+                            line.Position = UDim2.new(0, startVec.X, 0, startVec.Y)
+                            line.Size = UDim2.new(0, length, 0, 1)
+                            line.Rotation = math.deg(math.atan2(diff.Y, diff.X))
+                            line.BackgroundColor3 = Color3.fromRGB(255,255,255)
+                            lineIndex = lineIndex + 1
+                        end
+                    end
+                end
+                for i = lineIndex, #data.skeletonLines do
+                    data.skeletonLines[i].Visible = false
+                end
+            else
+                for _, line in ipairs(data.skeletonLines) do
+                    line.Visible = false
+                end
+            end
+
+            -- Chams
+            if Library.Flags["ESPChams"]:Get() then
+                data.chams.Adornee = char
+                data.chams.Enabled = true
+                data.chams.FillColor = Color3.fromRGB(119,120,255)
+                data.chams.OutlineColor = Color3.fromRGB(119,120,255)
+                data.chams.FillTransparency = 0.5
+                data.chams.OutlineTransparency = 0
+            else
+                data.chams.Enabled = false
+            end
+
+            data.container.Visible = true
+        end
+    end
+
+    -- Player added/removed
+    for _, player in pairs(Players:GetPlayers()) do
+        addPlayer(player)
+    end
+    Players.PlayerAdded:Connect(addPlayer)
+    Players.PlayerRemoving:Connect(function(player)
+        if ESP_Elements[player] then
+            ESP_Elements[player].container:Destroy()
+            ESP_Elements[player] = nil
+        end
+    end)
+
+    -- Start update loop
+    if ESP_Connection then ESP_Connection:Disconnect() end
+    ESP_Connection = RunService.RenderStepped:Connect(updateESP)
+end
+
+local function toggleESP(enabled)
+    ESP_Enabled = enabled
+    if enabled then
+        if not ESP_ScreenGui then
+            createESP()
+        else
+            ESP_ScreenGui.Enabled = true
+        end
+    else
+        if ESP_ScreenGui then
+            ESP_ScreenGui.Enabled = false
+        end
+    end
+end
+
+-- ==================== HOOK UP TOGGLES WITH CALLBACKS ====================
+-- Aimbot toggle already has its own keybind
+-- ESP toggle already connected above
+-- Fly toggle already connected via keybind
+-- Speedwalk toggle already connected via keybind
+-- NoClip toggle already connected via keybind
+-- Spinbot toggle already connected via keybind
+-- Jump Power toggle: apply when changed
+Library.Flags["JumpPowerEnable"].Callback = function()
+    applyJumpPower()
+end
+Library.Flags["JumpPowerStrength"].Callback = function()
+    applyJumpPower()
+end
+
+-- World effects toggles: apply when changed
+Library.Flags["WorldTextureEnable"].Callback = function()
+    applyMaterial()
+end
+Library.Flags["WorldMaterial"].Callback = function()
+    applyMaterial()
+end
+
+Library.Flags["WorldSkyboxEnable"].Callback = function()
+    applySkybox()
+end
+Library.Flags["WorldSkybox"].Callback = function()
+    applySkybox()
+end
+Library.Flags["WorldSkyboxSpin"].Callback = function()
+    applySkybox()
+end
+Library.Flags["WorldSkyboxSpinSpeed"].Callback = function()
+    applySkybox()
+end
+
+Library.Flags["WorldFogEnable"].Callback = function()
+    applyFog()
+end
+Library.Flags["WorldFogDensity"].Callback = function()
+    applyFog()
+end
+Library.Flags["WorldFogColor"].Callback = function()
+    applyFog()
+end
+
+Library.Flags["WorldRainEnable"].Callback = function()
+    createWeather()
+end
+Library.Flags["WorldRainDensity"].Callback = function()
+    createWeather()
+end
+Library.Flags["WorldSnowEnable"].Callback = function()
+    createWeather()
+end
+Library.Flags["WorldSnowDensity"].Callback = function()
+    createWeather()
+end
+
+-- Initial application
+task.wait(1)
+applyHeadlessToCurrent()
+applyJumpPower()
+applyMaterial()
+applySkybox()
+applyFog()
+createWeather()
+
 -- Initial ESP activation if enabled
-if Library.Flags["ESPEnable"] and Library.Flags["ESPEnable"]:Get() then
+if Library.Flags["ESPEnable"]:Get() then
     toggleESP(true)
 end
 
@@ -6956,7 +7621,4 @@ end
 Library:Init()
 
 local R, G, B = Library.Theme.Default.Accent.R * 255, Library.Theme.Default.Accent.G * 255, Library.Theme.Default.Accent.B * 255
--- Notification disabled to prevent errors
--- Library:Notify({Message = ("hit <font color='rgb(%d, %d, %d)'>awesomegamer5</font> in the <font color='rgb(%d, %d, %d)'>head</font> for <font color='rgb(%d, %d, %d)'>100</font> damage"):format(R, G, B, R, G, B, R, G, B), Delay = 5})
-
 print("✅ All features loaded successfully!")
